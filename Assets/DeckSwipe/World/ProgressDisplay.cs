@@ -10,6 +10,7 @@ namespace DeckSwipe.World {
 		private static readonly List<ProgressDisplay> _changeListeners = new List<ProgressDisplay>();
 		
 		public TextMeshProUGUI daysSurvivedText;
+		public bool showDayPrefix = true;
 		
 		private void Awake() {
 			if (!Util.IsPrefab(gameObject)) {
@@ -34,7 +35,7 @@ namespace DeckSwipe.World {
 		}
 		
 		private void SetDisplay(int days) {
-			daysSurvivedText.text = days.ToString();
+			daysSurvivedText.text = (showDayPrefix ? "Day " : "") + days.ToString();
 		}
 		
 	}

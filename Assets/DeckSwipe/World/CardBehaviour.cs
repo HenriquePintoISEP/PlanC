@@ -18,7 +18,12 @@ namespace DeckSwipe.World {
 
 		private const float _animationDuration = 0.4f;
 
+		[Header("Swipe Dynamics")]
 		public float swipeThreshold = 1.0f;
+		public float dragTiltMultiplier = -5.0f;
+		public bool lockVerticalMovement = true;
+
+		[Header("Card Settings")]
 		public Vector3 snapPosition;
 		public Vector3 snapRotationAngles;
 		public Vector2 cardImageSpriteTargetSize;
@@ -36,6 +41,7 @@ namespace DeckSwipe.World {
 		private float animationStartTime;
 		private AnimationState animationState = AnimationState.Idle;
 		private bool animationSuspended;
+		private bool isDragging;
 
 		public ICard Card {
 			set {
@@ -113,24 +119,50 @@ namespace DeckSwipe.World {
 		}
 
 		public void BeginDrag() {
+			if (animationState != AnimationState.Idle) {
+				return;
+			}
+			isDragging = true;
 			animationSuspended = true;
 			dragStartPosition = transform.position;
 			dragStartPointerPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 		}
 
 		public void Drag() {
+			if (!isDragging) {
+				return;
+			}
 			Vector3 displacement = Camera.main.ScreenToWorldPoint(Input.mousePosition) - dragStartPointerPosition;
+			
+			// Lock the Z and Y coordinates so the card can only move perfectly horizontally
 			displacement.z = 0.0f;
+			if (lockVerticalMovement) {
+				displacement.y = 0.0f;
+			}
+			
 			transform.position = dragStartPosition + displacement;
 
-			float alphaCoord = (transform.position.x - snapPosition.x) / (swipeThreshold / 2);
+			// Add rotation (arc) based on how far the card is dragged horizontally from the snap position
+			float horizontalDisplacement = transform.position.x - snapPosition.x;
+			float rotationAngle = horizontalDisplacement * dragTiltMultiplier;
+			transform.localEulerAngles = new Vector3(snapRotationAngles.x, snapRotationAngles.y, rotationAngle);
+
+			float alphaCoord = horizontalDisplacement / (swipeThreshold / 2);
 			Util.SetTextAlpha(leftActionText, -alphaCoord);
 			Util.SetTextAlpha(rightActionText, alphaCoord);
 		}
 
 		public void EndDrag() {
+			if (!isDragging) {
+				return;
+			}
+			isDragging = false;
 			animationStartPosition = transform.position;
 			animationStartRotationAngles = transform.eulerAngles;
+			
+			// Fix the spinning issue when returning to the snap position by finding the shortest rotation path
+			animationStartRotationAngles.z = snapRotationAngles.z + Mathf.DeltaAngle(snapRotationAngles.z, animationStartRotationAngles.z);
+			
 			animationStartTime = Time.time;
 			if (animationState != AnimationState.FlyingAway) {
 				if (transform.position.x < snapPosition.x - swipeThreshold) {
@@ -139,7 +171,7 @@ namespace DeckSwipe.World {
 					snapPosition += displacement.normalized
 					                * Util.OrthoCameraWorldDiagonalSize(Camera.main)
 					                * 2.0f;
-					snapRotationAngles = transform.eulerAngles;
+					snapRotationAngles = animationStartRotationAngles;
 					animationState = AnimationState.FlyingAway;
 					CardDescriptionDisplay.ResetDescription();
 				}
@@ -149,7 +181,7 @@ namespace DeckSwipe.World {
 					snapPosition += displacement.normalized
 					                * Util.OrthoCameraWorldDiagonalSize(Camera.main)
 					                * 2.0f;
-					snapRotationAngles = transform.eulerAngles;
+					snapRotationAngles = animationStartRotationAngles;
 					animationState = AnimationState.FlyingAway;
 					CardDescriptionDisplay.ResetDescription();
 				}
