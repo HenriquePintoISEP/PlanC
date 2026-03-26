@@ -5,9 +5,9 @@
     "leftAction": {
         "text": "Disable the automaton",
         "statsModification": {
-            "coal": -2,
-            "food": -2,
             "health": 0,
+            "food": -2,
+            "coal": -2,
             "hope": -2
         },
         "followup": [],
@@ -16,9 +16,9 @@
     "rightAction": {
         "text": "Disable the hothouse",
         "statsModification": {
-            "coal": 2,
-            "food": -4,
             "health": -2,
+            "food": -4,
+            "coal": 2,
             "hope": -2
         },
         "followup": [],

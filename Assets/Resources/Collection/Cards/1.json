@@ -5,9 +5,9 @@
     "leftAction": {
         "text": "No",
         "statsModification": {
-            "coal": -2,
-            "food": -2,
             "health": -2,
+            "food": -2,
+            "coal": -2,
             "hope": -2
         },
         "followup": [],
@@ -16,9 +16,9 @@
     "rightAction": {
         "text": "Yes",
         "statsModification": {
-            "coal": 2,
-            "food": 2,
             "health": 2,
+            "food": 2,
+            "coal": 2,
             "hope": 2
         },
         "followup": [],

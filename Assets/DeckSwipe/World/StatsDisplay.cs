@@ -7,9 +7,9 @@ namespace DeckSwipe.World {
 	
 	public class StatsDisplay : MonoBehaviour {
 		
-		public Image coalBar;
-		public Image foodBar;
 		public Image healthBar;
+		public Image foodBar;
+		public Image coalBar;
 		public Image hopeBar;
 		public float relativeMargin;
 		
@@ -27,9 +27,9 @@ namespace DeckSwipe.World {
 		}
 		
 		public void TriggerUpdate() {
-			coalBar.fillAmount = Mathf.Lerp(minFillAmount, maxFillAmount, Stats.CoalPercentage);
-			foodBar.fillAmount = Mathf.Lerp(minFillAmount, maxFillAmount, Stats.FoodPercentage);
 			healthBar.fillAmount = Mathf.Lerp(minFillAmount, maxFillAmount, Stats.HealthPercentage);
+			foodBar.fillAmount = Mathf.Lerp(minFillAmount, maxFillAmount, Stats.FoodPercentage);
+			coalBar.fillAmount = Mathf.Lerp(minFillAmount, maxFillAmount, Stats.CoalPercentage);
 			hopeBar.fillAmount = Mathf.Lerp(minFillAmount, maxFillAmount, Stats.HopePercentage);
 		}
 		

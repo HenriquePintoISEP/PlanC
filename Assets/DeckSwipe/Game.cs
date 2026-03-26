@@ -87,14 +87,14 @@ namespace DeckSwipe {
 				return;
 			}
 			
-			if (Stats.Coal == 0) {
-				SpawnCard(cardStorage.SpecialCard("gameover_coal"));
+			if (Stats.Health == 0) {
+				SpawnCard(cardStorage.SpecialCard("gameover_health"));
 			}
 			else if (Stats.Food == 0) {
 				SpawnCard(cardStorage.SpecialCard("gameover_food"));
 			}
-			else if (Stats.Health == 0) {
-				SpawnCard(cardStorage.SpecialCard("gameover_health"));
+			else if (Stats.Coal == 0) {
+				SpawnCard(cardStorage.SpecialCard("gameover_coal"));
 			}
 			else if (Stats.Hope == 0) {
 				SpawnCard(cardStorage.SpecialCard("gameover_hope"));

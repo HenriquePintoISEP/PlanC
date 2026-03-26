@@ -5,9 +5,9 @@
     "leftAction": {
         "text": "Sample action 1L",
         "statsModification": {
-            "coal": 4,
-            "food": -2,
             "health": -4,
+            "food": -2,
+            "coal": 4,
             "hope": 0
         },
         "followup": [],
@@ -16,9 +16,9 @@
     "rightAction": {
         "text": "Sample action 1R",
         "statsModification": {
-            "coal": -2,
-            "food": 2,
             "health": 4,
+            "food": 2,
+            "coal": -2,
             "hope": 0
         },
         "followup": [],

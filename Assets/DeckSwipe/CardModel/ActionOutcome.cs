@@ -11,12 +11,12 @@ namespace DeckSwipe.CardModel {
 			statsModification = new StatsModification(0, 0, 0, 0);
 		}
 
-		public ActionOutcome(int coalMod, int foodMod, int healthMod, int hopeMod) {
-			statsModification = new StatsModification(coalMod, foodMod, healthMod, hopeMod);
+		public ActionOutcome(int healthMod, int foodMod, int coalMod, int hopeMod) {
+			statsModification = new StatsModification(healthMod, foodMod, coalMod, hopeMod);
 		}
 
-		public ActionOutcome(int coalMod, int foodMod, int healthMod, int hopeMod, IFollowup followup) {
-			statsModification = new StatsModification(coalMod, foodMod, healthMod, hopeMod);
+		public ActionOutcome(int healthMod, int foodMod, int coalMod, int hopeMod, IFollowup followup) {
+			statsModification = new StatsModification(healthMod, foodMod, coalMod, hopeMod);
 			this.followup = followup;
 		}
 

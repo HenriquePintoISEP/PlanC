@@ -6,15 +6,15 @@ namespace DeckSwipe.CardModel {
 	[Serializable]
 	public class StatsModification {
 
-		public int coal;
-		public int food;
 		public int health;
+		public int food;
+		public int coal;
 		public int hope;
 
-		public StatsModification(int coal, int food, int health, int hope) {
-			this.coal = coal;
-			this.food = food;
+		public StatsModification(int health, int food, int coal, int hope) {
 			this.health = health;
+			this.food = food;
+			this.coal = coal;
 			this.hope = hope;
 		}
 

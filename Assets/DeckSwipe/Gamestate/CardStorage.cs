@@ -90,8 +90,8 @@ namespace DeckSwipe.Gamestate {
 					"A",
 					"B",
 					placeholderPerson,
-					new ActionOutcome(1, 1, 0, -2),
-					new ActionOutcome(2, 2, -2, -4),
+					new ActionOutcome(0, 1, 1, -2),
+					new ActionOutcome(-2, 2, 2, -4),
 					new List<ICardPrerequisite>()));
 		}
 
