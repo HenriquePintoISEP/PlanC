@@ -18,6 +18,12 @@ namespace DeckSwipe {
 		public Sprite defaultCharacterSprite;
 		public bool loadRemoteCollectionFirst;
 
+		[Header("Time Progression")]
+		public int maxEnergy = 3;
+		public int maxDays = 7;
+		private int currentDay = 1;
+		private int currentEnergy = 1;
+
 		public CardStorage CardStorage {
 			get { return cardStorage; }
 		}
@@ -68,11 +74,19 @@ namespace DeckSwipe {
 
 		private void StartGameplayLoop() {
 			Stats.ResetStats();
-			ProgressDisplay.SetDaysSurvived(0);
+			currentDay = 1;
+			currentEnergy = 1;
+			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
 			DrawNextCard();
 		}
 
 		public void DrawNextCard() {
+			if (currentDay > maxDays) {
+				// DISASTER EVENT HOOK: the run is over (reached max days), replace this with calling endgame/disaster results logic later
+				Debug.Log("DISASTER HITS! Calculate Preparedness Score.");
+				return;
+			}
+			
 			if (Stats.Coal == 0) {
 				SpawnCard(cardStorage.SpecialCard("gameover_coal"));
 			}
@@ -97,10 +111,18 @@ namespace DeckSwipe {
 		}
 
 		public void CardActionPerformed() {
-			progressStorage.Progress.AddDays(Random.Range(0.5f, 1.5f),
-					daysPassedPreviously);
-			ProgressDisplay.SetDaysSurvived(
-					(int)(progressStorage.Progress.daysPassed - daysPassedPreviously));
+			// Updated the internal tracker for legacy data/statistics so longest run tracking still works
+			progressStorage.Progress.AddDays(1.0f / maxEnergy, daysPassedPreviously);
+			
+			// Handle Energy / Day logic
+			currentEnergy++;
+			if (currentEnergy > maxEnergy) {
+				currentEnergy = 1;
+				currentDay++;
+			}
+			
+			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
+			
 			DrawNextCard();
 		}
 
