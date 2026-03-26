@@ -2479,9 +2479,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114101158802410498, guid: 8faece18a1a1c4de994242052dfac456,
         type: 3}
+      propertyPath: energyText
+      value: 
+      objectReference: {fileID: 453370888}
+    - target: {fileID: 114101158802410498, guid: 8faece18a1a1c4de994242052dfac456,
+        type: 3}
       propertyPath: daysSurvivedText
       value: 
       objectReference: {fileID: 899990320}
+    - target: {fileID: 114101158802410498, guid: 8faece18a1a1c4de994242052dfac456,
+        type: 3}
+      propertyPath: energyProgressBar
+      value: 
+      objectReference: {fileID: 993521358}
     - target: {fileID: 114649372411728456, guid: 8faece18a1a1c4de994242052dfac456,
         type: 3}
       propertyPath: m_text
