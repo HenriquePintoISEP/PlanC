@@ -1,4 +1,5 @@
 ﻿using DeckSwipe.CardModel;
+using DeckSwipe.Gamestate;
 using Outfrost;
 using TMPro;
 using UnityEngine;
@@ -110,10 +111,30 @@ namespace DeckSwipe.World {
 
 					ShowVisibleSide();
 				}
-				if (animationState != AnimationState.Revealing) {
-					float alphaCoord = (transform.position.x - snapPosition.x) / (swipeThreshold / 2);
-					Util.SetTextAlpha(leftActionText, Mathf.Clamp01(-alphaCoord));
-					Util.SetTextAlpha(rightActionText, Mathf.Clamp01(alphaCoord));
+				if (animationState != AnimationState.Revealing && animationState != AnimationState.FlyingAway) {
+					UpdateDecisionVisuals(transform.position.x - snapPosition.x);
+				}
+				else if (animationState == AnimationState.FlyingAway) {
+					Stats.ShowIndicators(null, 0f);
+				}
+			}
+		}
+
+		private void UpdateDecisionVisuals(float horizontalDisplacement) {
+			float alphaCoord = horizontalDisplacement / (swipeThreshold / 2.0f);
+			
+			Util.SetTextAlpha(leftActionText, Mathf.Clamp01(-alphaCoord));
+			Util.SetTextAlpha(rightActionText, Mathf.Clamp01(alphaCoord));
+
+			if (card != null) {
+				if (alphaCoord < -0.01f) {
+					Stats.ShowIndicators(card.LeftSwipeOutcome?.StatsModification, Mathf.Clamp01(-alphaCoord));
+				}
+				else if (alphaCoord > 0.01f) {
+					Stats.ShowIndicators(card.RightSwipeOutcome?.StatsModification, Mathf.Clamp01(alphaCoord));
+				}
+				else {
+					Stats.ShowIndicators(null, 0f);
 				}
 			}
 		}
@@ -147,9 +168,7 @@ namespace DeckSwipe.World {
 			float rotationAngle = horizontalDisplacement * dragTiltMultiplier;
 			transform.localEulerAngles = new Vector3(snapRotationAngles.x, snapRotationAngles.y, rotationAngle);
 
-			float alphaCoord = horizontalDisplacement / (swipeThreshold / 2);
-			Util.SetTextAlpha(leftActionText, -alphaCoord);
-			Util.SetTextAlpha(rightActionText, alphaCoord);
+			UpdateDecisionVisuals(horizontalDisplacement);
 		}
 
 		public void EndDrag() {

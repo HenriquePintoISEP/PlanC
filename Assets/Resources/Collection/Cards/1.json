@@ -6,9 +6,9 @@
         "text": "No",
         "statsModification": {
             "health": -2,
-            "food": -2,
-            "coal": -2,
-            "hope": -2
+            "supplies": -2,
+            "safety": -2,
+            "community": -2
         },
         "followup": [],
         "specialFollowup": []
@@ -17,9 +17,9 @@
         "text": "Yes",
         "statsModification": {
             "health": 2,
-            "food": 2,
-            "coal": 2,
-            "hope": 2
+            "supplies": 2,
+            "safety": 2,
+            "community": 2
         },
         "followup": [],
         "specialFollowup": []

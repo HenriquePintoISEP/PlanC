@@ -9,27 +9,27 @@ namespace DeckSwipe.Gamestate {
 		
 		private const int _maxStatValue = 32;
 		private const int _startingHealth = 16;
-		private const int _startingFood = 16;
-		private const int _startingCoal = 16;
-		private const int _startingHope = 16;
+		private const int _startingSupplies = 16;
+		private const int _startingSafety = 16;
+		private const int _startingCommunity = 16;
 		
 		private static readonly List<StatsDisplay> _changeListeners = new List<StatsDisplay>();
 		
 		public static int Health { get; private set; }
-		public static int Food { get; private set; }
-		public static int Coal { get; private set; }
-		public static int Hope { get; private set; }
+		public static int Supplies { get; private set; }
+		public static int Safety { get; private set; }
+		public static int Community { get; private set; }
 		
 		public static float HealthPercentage => (float) Health / _maxStatValue;
-		public static float FoodPercentage => (float) Food / _maxStatValue;
-		public static float CoalPercentage => (float) Coal / _maxStatValue;
-		public static float HopePercentage => (float) Hope / _maxStatValue;
+		public static float SuppliesPercentage => (float) Supplies / _maxStatValue;
+		public static float SafetyPercentage => (float) Safety / _maxStatValue;
+		public static float CommunityPercentage => (float) Community / _maxStatValue;
 		
 		public static void ApplyModification(StatsModification mod) {
 			Health = ClampValue(Health + mod.health);
-			Food = ClampValue(Food + mod.food);
-			Coal = ClampValue(Coal + mod.coal);
-			Hope = ClampValue(Hope + mod.hope);
+			Supplies = ClampValue(Supplies + mod.supplies);
+			Safety = ClampValue(Safety + mod.safety);
+			Community = ClampValue(Community + mod.community);
 			TriggerAllListeners();
 		}
 		
@@ -40,9 +40,9 @@ namespace DeckSwipe.Gamestate {
 		
 		private static void ApplyStartingValues() {
 			Health = ClampValue(_startingHealth);
-			Food = ClampValue(_startingFood);
-			Coal = ClampValue(_startingCoal);
-			Hope = ClampValue(_startingHope);
+			Supplies = ClampValue(_startingSupplies);
+			Safety = ClampValue(_startingSafety);
+			Community = ClampValue(_startingCommunity);
 		}
 		
 		private static void TriggerAllListeners() {
@@ -52,6 +52,17 @@ namespace DeckSwipe.Gamestate {
 				}
 				else {
 					_changeListeners[i].TriggerUpdate();
+				}
+			}
+		}
+
+		public static void ShowIndicators(StatsModification mod, float opacity) {
+			for (int i = 0; i < _changeListeners.Count; i++) {
+				if (_changeListeners[i] == null) {
+					_changeListeners.RemoveAt(i);
+				}
+				else {
+					_changeListeners[i].SetIndicators(mod, opacity);
 				}
 			}
 		}

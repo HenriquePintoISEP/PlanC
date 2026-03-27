@@ -1,4 +1,5 @@
-﻿using DeckSwipe.CardModel;
+﻿using System.Collections.Generic;
+using DeckSwipe.CardModel;
 using DeckSwipe.CardModel.DrawQueue;
 using DeckSwipe.Gamestate;
 using DeckSwipe.Gamestate.Persistence;
@@ -23,6 +24,17 @@ namespace DeckSwipe {
 		public int maxDays = 7;
 		private int currentDay = 1;
 		private int currentEnergy = 1;
+
+		public enum ResourceType { Health, Supplies, Safety, Community }
+
+		[Header("Game Over Conditions")]
+		[Tooltip("The first resource hitting 0 in this list will trigger its game over card.")]
+		public List<ResourceType> gameOverConditions = new List<ResourceType> {
+			ResourceType.Health,
+			ResourceType.Supplies,
+			ResourceType.Safety,
+			ResourceType.Community
+		};
 
 		public CardStorage CardStorage {
 			get { return cardStorage; }
@@ -87,26 +99,34 @@ namespace DeckSwipe {
 				return;
 			}
 			
-			if (Stats.Health == 0) {
-				SpawnCard(cardStorage.SpecialCard("gameover_health"));
+			bool gameOverTriggered = false;
+			foreach (ResourceType condition in gameOverConditions) {
+				if (GetStatValue(condition) == 0) {
+					SpawnCard(cardStorage.SpecialCard($"gameover_{condition.ToString().ToLower()}"));
+					gameOverTriggered = true;
+					break;
+				}
 			}
-			else if (Stats.Food == 0) {
-				SpawnCard(cardStorage.SpecialCard("gameover_food"));
-			}
-			else if (Stats.Coal == 0) {
-				SpawnCard(cardStorage.SpecialCard("gameover_coal"));
-			}
-			else if (Stats.Hope == 0) {
-				SpawnCard(cardStorage.SpecialCard("gameover_hope"));
-			}
-			else {
+
+			if (!gameOverTriggered) {
 				IFollowup followup = cardDrawQueue.Next();
 				ICard card = followup?.Fetch(cardStorage) ?? cardStorage.Random();
 				SpawnCard(card);
 			}
+
 			saveIntervalCounter = (saveIntervalCounter - 1) % _saveInterval;
 			if (saveIntervalCounter == 0) {
 				progressStorage.Save();
+			}
+		}
+
+		private int GetStatValue(ResourceType resource) {
+			switch (resource) {
+				case ResourceType.Health: return Stats.Health;
+				case ResourceType.Supplies: return Stats.Supplies;
+				case ResourceType.Safety: return Stats.Safety;
+				case ResourceType.Community: return Stats.Community;
+				default: return -1;
 			}
 		}
 

@@ -14,6 +14,9 @@ namespace DeckSwipe.CardModel {
 		Sprite CardSprite { get; }
 		ICardProgress Progress { get; }
 
+		IActionOutcome LeftSwipeOutcome { get; }
+		IActionOutcome RightSwipeOutcome { get; }
+
 		void CardShown(Game controller);
 		void PerformLeftDecision(Game controller);
 		void PerformRightDecision(Game controller);

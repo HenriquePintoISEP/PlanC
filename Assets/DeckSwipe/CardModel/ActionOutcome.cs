@@ -4,6 +4,8 @@ namespace DeckSwipe.CardModel {
 
 	public class ActionOutcome : IActionOutcome {
 
+		public StatsModification StatsModification => statsModification;
+
 		private readonly StatsModification statsModification;
 		private readonly IFollowup followup;
 
@@ -11,12 +13,12 @@ namespace DeckSwipe.CardModel {
 			statsModification = new StatsModification(0, 0, 0, 0);
 		}
 
-		public ActionOutcome(int healthMod, int foodMod, int coalMod, int hopeMod) {
-			statsModification = new StatsModification(healthMod, foodMod, coalMod, hopeMod);
+		public ActionOutcome(int healthMod, int suppliesMod, int safetyMod, int communityMod) {
+			statsModification = new StatsModification(healthMod, suppliesMod, safetyMod, communityMod);
 		}
 
-		public ActionOutcome(int healthMod, int foodMod, int coalMod, int hopeMod, IFollowup followup) {
-			statsModification = new StatsModification(healthMod, foodMod, coalMod, hopeMod);
+		public ActionOutcome(int healthMod, int suppliesMod, int safetyMod, int communityMod, IFollowup followup) {
+			statsModification = new StatsModification(healthMod, suppliesMod, safetyMod, communityMod);
 			this.followup = followup;
 		}
 

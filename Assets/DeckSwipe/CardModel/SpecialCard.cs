@@ -26,6 +26,9 @@ namespace DeckSwipe.CardModel {
 		public Character character;
 		public SpecialCardProgress progress;
 
+		public IActionOutcome LeftSwipeOutcome => leftSwipeOutcome;
+		public IActionOutcome RightSwipeOutcome => rightSwipeOutcome;
+
 		private readonly IActionOutcome leftSwipeOutcome;
 		private readonly IActionOutcome rightSwipeOutcome;
 

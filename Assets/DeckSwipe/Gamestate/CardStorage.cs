@@ -100,14 +100,14 @@ namespace DeckSwipe.Gamestate {
 				SpecialCards = new Dictionary<string, SpecialCard>();
 			}
 
-			if (!SpecialCards.ContainsKey("gameover_coal")) {
-				SpecialCards.Add("gameover_coal", new SpecialCard("The city runs out of coal to run the generator, and freezes over.", "", "",
+			if (!SpecialCards.ContainsKey("gameover_safety")) {
+				SpecialCards.Add("gameover_safety", new SpecialCard("The city runs out of coal to run the generator, and freezes over.", "", "",
 						_defaultGameOverCharacter,
 						new GameOverOutcome(),
 						new GameOverOutcome()));
 			}
-			if (!SpecialCards.ContainsKey("gameover_food")) {
-				SpecialCards.Add("gameover_food", new SpecialCard("Hunger consumes the city, as food reserves deplete.", "", "",
+			if (!SpecialCards.ContainsKey("gameover_supplies")) {
+				SpecialCards.Add("gameover_supplies", new SpecialCard("Hunger consumes the city, as food reserves deplete.", "", "",
 						_defaultGameOverCharacter,
 						new GameOverOutcome(),
 						new GameOverOutcome()));
@@ -118,8 +118,8 @@ namespace DeckSwipe.Gamestate {
 						new GameOverOutcome(),
 						new GameOverOutcome()));
 			}
-			if (!SpecialCards.ContainsKey("gameover_hope")) {
-				SpecialCards.Add("gameover_hope", new SpecialCard("All hope among the people is lost.", "", "",
+			if (!SpecialCards.ContainsKey("gameover_community")) {
+				SpecialCards.Add("gameover_community", new SpecialCard("All hope among the people is lost.", "", "",
 						_defaultGameOverCharacter,
 						new GameOverOutcome(),
 						new GameOverOutcome()));

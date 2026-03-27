@@ -6,9 +6,9 @@
         "text": "That's a great idea",
         "statsModification": {
             "health": 2,
-            "food": 2,
-            "coal": -2,
-            "hope": -4
+            "supplies": 2,
+            "safety": -2,
+            "community": -4
         },
         "followup": [],
         "specialFollowup": []
@@ -17,9 +17,9 @@
         "text": "No, let's not",
         "statsModification": {
             "health": -4,
-            "food": 0,
-            "coal": 0,
-            "hope": 2
+            "supplies": 0,
+            "safety": 0,
+            "community": 2
         },
         "followup": [],
         "specialFollowup": []

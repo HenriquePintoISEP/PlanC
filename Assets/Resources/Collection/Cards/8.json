@@ -6,9 +6,9 @@
         "text": "Sample action 1L",
         "statsModification": {
             "health": -4,
-            "food": -2,
-            "coal": 4,
-            "hope": 0
+            "supplies": -2,
+            "safety": 4,
+            "community": 0
         },
         "followup": [],
         "specialFollowup": []
@@ -17,9 +17,9 @@
         "text": "Sample action 1R",
         "statsModification": {
             "health": 4,
-            "food": 2,
-            "coal": -2,
-            "hope": 0
+            "supplies": 2,
+            "safety": -2,
+            "community": 0
         },
         "followup": [],
         "specialFollowup": []

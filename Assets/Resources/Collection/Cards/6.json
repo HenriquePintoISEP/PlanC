@@ -6,9 +6,9 @@
         "text": "Disable the automaton",
         "statsModification": {
             "health": 0,
-            "food": -2,
-            "coal": -2,
-            "hope": -2
+            "supplies": -2,
+            "safety": -2,
+            "community": -2
         },
         "followup": [],
         "specialFollowup": []
@@ -17,9 +17,9 @@
         "text": "Disable the hothouse",
         "statsModification": {
             "health": -2,
-            "food": -4,
-            "coal": 2,
-            "hope": -2
+            "supplies": -4,
+            "safety": 2,
+            "community": -2
         },
         "followup": [],
         "specialFollowup": []

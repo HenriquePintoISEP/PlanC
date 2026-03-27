@@ -7,15 +7,15 @@ namespace DeckSwipe.CardModel {
 	public class StatsModification {
 
 		public int health;
-		public int food;
-		public int coal;
-		public int hope;
+		public int supplies;
+		public int safety;
+		public int community;
 
-		public StatsModification(int health, int food, int coal, int hope) {
+		public StatsModification(int health, int supplies, int safety, int community) {
 			this.health = health;
-			this.food = food;
-			this.coal = coal;
-			this.hope = hope;
+			this.supplies = supplies;
+			this.safety = safety;
+			this.community = community;
 		}
 
 		public void Perform() {
