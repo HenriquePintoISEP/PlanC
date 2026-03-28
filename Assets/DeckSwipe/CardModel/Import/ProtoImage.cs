@@ -7,14 +7,17 @@ namespace DeckSwipe.CardModel.Import {
 
 		public int id;
 		public string url;
+		public bool localFirst;
 
 		public ProtoImage() {}
 
 		public ProtoImage(
 				int id,
-				string url) {
+				string url,
+				bool localFirst) {
 			this.id = id;
 			this.url = url;
+			this.localFirst = localFirst;
 		}
 
 	}

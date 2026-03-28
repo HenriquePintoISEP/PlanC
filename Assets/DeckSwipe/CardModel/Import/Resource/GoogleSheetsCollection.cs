@@ -122,7 +122,7 @@ namespace DeckSwipe.CardModel.Import.Resource {
 			for (int i = 1; i < imageRowData.Length; i++) {
 				int id = imageRowData[i].values[0].IntValue;
 				string imageUrl = imageRowData[i].values[1].hyperlink;
-				images.Add(new ProtoImage(id, imageUrl));
+				images.Add(new ProtoImage(id, imageUrl, false)); // Remote sheets are always treated as remote URLs
 			}
 
 			// Parse Characters sheet

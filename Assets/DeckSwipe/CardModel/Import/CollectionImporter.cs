@@ -62,6 +62,33 @@ namespace DeckSwipe.CardModel.Import {
 					continue;
 				}
 
+				if (image.localFirst) {
+					Debug.Log("[CollectionImporter] Loading local image from path: " + image.url);
+					
+					byte[] localImageData;
+					try {
+						localImageData = File.ReadAllBytes(image.url);
+					}
+					catch (Exception e) {
+						Debug.LogWarning("[CollectionImporter] Failed to load local image at " + image.url + ": " + e.Message);
+						continue;
+					}
+
+					Texture2D localTexture = new Texture2D(1, 1);
+					if (localTexture.LoadImage(localImageData)) {
+						Sprite localSprite = Sprite.Create(
+								localTexture,
+								new Rect(0.0f, 0.0f, localTexture.width, localTexture.height),
+								new Vector2(0.5f, 0.5f));
+						sprites.Add(image.id, localSprite);
+						continue;
+					}
+					else {
+						Debug.LogWarning("[CollectionImporter] Could not create sprite texture from local file loaded from " + image.url);
+						continue;
+					}
+				}
+
 				Debug.Log("[CollectionImporter] Fetching image from " + image.url + " ...");
 				HttpWebResponse imageResponse;
 				try {

@@ -27,7 +27,12 @@ namespace DeckSwipe.World {
 		[Header("Card Settings")]
 		public Vector3 snapPosition;
 		public Vector3 snapRotationAngles;
+
 		public Vector2 cardImageSpriteTargetSize;
+
+		[Tooltip("If true, ignores target size and uses the absolute 1x1 sprite scale without automatically fitting it in a bounding box.")]
+		public bool forceNativeImageScale = false;
+		
 		public TextMeshPro leftActionText;
 		public TextMeshPro rightActionText;
 		public SpriteRenderer cardBackSpriteRenderer;
@@ -50,13 +55,18 @@ namespace DeckSwipe.World {
 				leftActionText.text = card.LeftSwipeText;
 				rightActionText.text = card.RightSwipeText;
 				if (card.CardSprite != null) {
-					Vector2 targetSizeRatio = cardImageSpriteTargetSize / card.CardSprite.bounds.size;
-					float scaleFactor = Mathf.Min(targetSizeRatio.x, targetSizeRatio.y);
+					if (forceNativeImageScale) {
+						cardImageSpriteRenderer.transform.localScale = Vector3.one;
+					}
+					else {
+						Vector2 targetSizeRatio = cardImageSpriteTargetSize / card.CardSprite.bounds.size;
+						float scaleFactor = Mathf.Min(targetSizeRatio.x, targetSizeRatio.y);
 
-					Vector3 scale = cardImageSpriteRenderer.transform.localScale;
-					scale.x = scaleFactor;
-					scale.y = scaleFactor;
-					cardImageSpriteRenderer.transform.localScale = scale;
+						Vector3 scale = cardImageSpriteRenderer.transform.localScale;
+						scale.x = scaleFactor;
+						scale.y = scaleFactor;
+						cardImageSpriteRenderer.transform.localScale = scale;
+					}
 
 					cardImageSpriteRenderer.sprite = card.CardSprite;
 				}

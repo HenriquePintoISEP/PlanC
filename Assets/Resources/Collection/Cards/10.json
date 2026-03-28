@@ -1,0 +1,29 @@
+{
+    "id": 10,
+    "characterId": 10,
+    "cardText": "This card uses a local image asset using the localFirst parameter! Pretty neat right?",
+    "leftAction": {
+        "text": "Amazing!",
+        "statsModification": {
+            "health": 2,
+            "supplies": 2,
+            "safety": 2,
+            "community": 2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "I guess...",
+        "statsModification": {
+            "health": -2,
+            "supplies": -2,
+            "safety": -2,
+            "community": -2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": []
+}
