@@ -5,6 +5,7 @@ using DeckSwipe.Gamestate;
 using DeckSwipe.Gamestate.Persistence;
 using DeckSwipe.World;
 using Outfrost;
+using System.Text;
 using UnityEngine;
 
 namespace DeckSwipe {
@@ -46,6 +47,7 @@ namespace DeckSwipe {
 		private float daysLastRun;
 		private int saveIntervalCounter;
 		private CardDrawQueue cardDrawQueue = new CardDrawQueue();
+		private PreparednessRunTracker preparednessTracker = new PreparednessRunTracker();
 
 		private void Awake() {
 			// Listen for Escape key ('Back' on Android) that suspends the game on Android
@@ -86,6 +88,7 @@ namespace DeckSwipe {
 
 		private void StartGameplayLoop() {
 			Stats.ResetStats();
+			preparednessTracker.Reset();
 			currentDay = 1;
 			currentEnergy = 1;
 			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
@@ -94,8 +97,7 @@ namespace DeckSwipe {
 
 		public void DrawNextCard() {
 			if (currentDay > maxDays) {
-				// DISASTER EVENT HOOK: the run is over (reached max days), replace this with calling endgame/disaster results logic later
-				Debug.Log("DISASTER HITS! Calculate Preparedness Score.");
+				TriggerDisasterEnd();
 				return;
 			}
 			
@@ -146,6 +148,17 @@ namespace DeckSwipe {
 			DrawNextCard();
 		}
 
+		public void PerformDecision(ICard card, bool chooseLeft) {
+			preparednessTracker.RecordDecision(card, chooseLeft);
+
+			if (chooseLeft) {
+				card.PerformLeftDecision(this);
+			}
+			else {
+				card.PerformRightDecision(this);
+			}
+		}
+
 		public void AddFollowupCard(IFollowup followup) {
 			cardDrawQueue.Insert(followup);
 		}
@@ -161,6 +174,32 @@ namespace DeckSwipe {
 			cardInstance.Card = card;
 			cardInstance.snapPosition.y = spawnPosition.y;
 			cardInstance.Controller = this;
+		}
+
+		private void TriggerDisasterEnd() {
+			PreparednessState initialState = new PreparednessState(16, 16, 16, 16);
+			PreparednessState actualFinalState = new PreparednessState(Stats.Health, Stats.Supplies, Stats.Safety, Stats.Community);
+
+			PreparednessReport report = preparednessTracker.BuildReport(
+				initialState,
+				actualFinalState,
+				0,
+				32);
+
+			Debug.Log($"DISASTER HITS! Preparedness: {report.ActualScore}/100 (best possible: {report.BestPossibleScore}/100, gap: {report.ScoreGap}).");
+			Debug.Log($"Actual final stats => H:{report.ActualFinalState.Health} S:{report.ActualFinalState.Supplies} Sa:{report.ActualFinalState.Safety} C:{report.ActualFinalState.Community}");
+			Debug.Log($"Best possible stats => H:{report.BestPossibleFinalState.Health} S:{report.BestPossibleFinalState.Supplies} Sa:{report.BestPossibleFinalState.Safety} C:{report.BestPossibleFinalState.Community}");
+
+			if (report.BestDecisionPath != null && report.BestDecisionPath.Count > 0) {
+				StringBuilder pathBuilder = new StringBuilder();
+				for (int i = 0; i < report.BestDecisionPath.Count; i++) {
+					if (i > 0) {
+						pathBuilder.Append(", ");
+					}
+					pathBuilder.Append(report.BestDecisionPath[i] ? "L" : "R");
+				}
+				Debug.Log($"Best scenario path by turn: {pathBuilder}");
+			}
 		}
 
 	}

@@ -195,7 +195,7 @@ namespace DeckSwipe.World {
 			animationStartTime = Time.time;
 			if (animationState != AnimationState.FlyingAway) {
 				if (transform.position.x < snapPosition.x - swipeThreshold) {
-					card.PerformLeftDecision(Controller);
+					Controller.PerformDecision(card, true);
 					Vector3 displacement = animationStartPosition - snapPosition;
 					snapPosition += displacement.normalized
 					                * Util.OrthoCameraWorldDiagonalSize(Camera.main)
@@ -205,7 +205,7 @@ namespace DeckSwipe.World {
 					CardDescriptionDisplay.ResetDescription();
 				}
 				else if (transform.position.x > snapPosition.x + swipeThreshold) {
-					card.PerformRightDecision(Controller);
+					Controller.PerformDecision(card, false);
 					Vector3 displacement = animationStartPosition - snapPosition;
 					snapPosition += displacement.normalized
 					                * Util.OrthoCameraWorldDiagonalSize(Camera.main)
