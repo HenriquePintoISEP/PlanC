@@ -27,10 +27,26 @@ namespace DeckSwipe {
 		[Header("Time Progression")]
 		public int maxEnergy = 3;
 		public int maxDays = 7;
+		public string disasterTitle = "Disaster Struck";
 		private int currentDay = 1;
 		private int currentEnergy = 1;
 		private DisasterType selectedDisaster = DisasterType.None;
 		private bool disasterCardDisplayed;
+
+		[System.Serializable]
+		public class DayInfo {
+			public string title;
+		}
+
+		public DayInfo[] dayInfos = new[] {
+			new DayInfo { title = "The Calm Before the Storm" },
+			new DayInfo { title = "Warning Signs" },
+			new DayInfo { title = "Rising Tension" },
+			new DayInfo { title = "Last Chance" },
+			new DayInfo { title = "Breaking Point" },
+			new DayInfo { title = "Aftermath" },
+			new DayInfo { title = "Final Stand" }
+		};
 
 		[Header("Game Over Conditions")]
 		[Tooltip("The first resource hitting 0 in this list will trigger its game over card.")]
@@ -95,11 +111,22 @@ namespace DeckSwipe {
 			preparednessTracker.Reset();
 			currentDay = 1;
 			currentEnergy = 1;
+			if (dayInfos != null && dayInfos.Length > 0) {
+				maxDays = dayInfos.Length;
+			}
 			selectedDisaster = ChooseDisasterType();
 			Debug.Log("[Game] Selected disaster: " + selectedDisaster);
+			ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
 			ProgressDisplay.ShowTimeProgress(true);
 			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
 			DrawNextCard();
+		}
+
+		private string GetDayName(int day) {
+			if (dayInfos == null || dayInfos.Length == 0 || day < 1 || day > dayInfos.Length) {
+				return string.Empty;
+			}
+			return dayInfos[day - 1].title;
 		}
 
 		private DisasterType ChooseDisasterType() {
@@ -158,6 +185,7 @@ namespace DeckSwipe {
 			if (currentEnergy > maxEnergy) {
 				currentEnergy = 1;
 				currentDay++;
+				ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
 			}
 			
 			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
@@ -235,6 +263,7 @@ namespace DeckSwipe {
 			SpecialCard disasterCard = cardStorage.SpecialCard($"disaster_{selectedDisaster.ToString().ToLower()}");
 			if (disasterCard != null) {
 				disasterCardDisplayed = true;
+				ProgressDisplay.SetDayLabelText(disasterTitle);
 				ProgressDisplay.ShowTimeProgress(false);
 				SpawnCard(disasterCard);
 				return;

@@ -10,11 +10,15 @@ namespace DeckSwipe.World {
 		
 		private static readonly List<ProgressDisplay> _changeListeners = new List<ProgressDisplay>();
 		
+		[Header("Day Display")]
 		public TextMeshProUGUI daysSurvivedText;
+		public TextMeshProUGUI dayTitleText;
+		public bool showDayPrefix = true;
+
+		[Header("Energy Display")]
 		public TextMeshProUGUI energyText;
 		public Image energyProgressBar;
 		public Image energyProgressBarBackground;
-		public bool showDayPrefix = true;
 		
 		public float fillAnimationSpeed = 5.0f; // Speed multiplier for the bar animation
 		private float targetFillAmount = 0.0f;
@@ -58,6 +62,7 @@ namespace DeckSwipe.World {
 
 		// Keep this for backwards compatibility with GameStartOverlay animations
 		public static void SetDaysSurvived(int days) {
+			currentDayNumber = days;
 			for (int i = 0; i < _changeListeners.Count; i++) {
 				if (_changeListeners[i] == null) {
 					_changeListeners.RemoveAt(i);
@@ -67,10 +72,48 @@ namespace DeckSwipe.World {
 				}
 			}
 		}
-		
+
+		private static int currentDayNumber = 1;
+		private static string currentDayName = string.Empty;
+
+		public static void SetCurrentDayName(string dayName) {
+			currentDayName = dayName ?? string.Empty;
+			for (int i = 0; i < _changeListeners.Count; i++) {
+				if (_changeListeners[i] == null) {
+					_changeListeners.RemoveAt(i);
+				}
+				else {
+					_changeListeners[i].UpdateDayName();
+				}
+			}
+		}
+
+		public static void SetDayLabelText(string labelText) {
+			for (int i = 0; i < _changeListeners.Count; i++) {
+				if (_changeListeners[i] == null) {
+					_changeListeners.RemoveAt(i);
+				}
+				else {
+					_changeListeners[i].UpdateDayLabel(labelText ?? string.Empty);
+				}
+			}
+		}
+
 		private void UpdateDayOnly(int days) {
 			if (daysSurvivedText != null) {
 				daysSurvivedText.text = (showDayPrefix ? "Day " : "") + days.ToString();
+			}
+		}
+
+		private void UpdateDayName() {
+			if (dayTitleText != null) {
+				dayTitleText.text = currentDayName;
+			}
+		}
+
+		private void UpdateDayLabel(string labelText) {
+			if (daysSurvivedText != null) {
+				daysSurvivedText.text = labelText;
 			}
 		}
 		
