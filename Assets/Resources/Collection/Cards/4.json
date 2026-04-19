@@ -34,5 +34,6 @@
             ]
         }
     ],
-    "specialCardPrerequisites": []
+    "specialCardPrerequisites": [],
+    "disasterTypes": []
 }

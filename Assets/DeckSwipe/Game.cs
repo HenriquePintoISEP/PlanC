@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using DeckSwipe;
 using DeckSwipe.CardModel;
 using DeckSwipe.CardModel.DrawQueue;
 using DeckSwipe.Gamestate;
@@ -9,6 +10,9 @@ using System.Text;
 using UnityEngine;
 
 namespace DeckSwipe {
+
+	public enum DisasterType { None, Storm, Flood, Drought, Wildfire }
+	public enum ResourceType { Health, Supplies, Safety, Community }
 
 	public class Game : MonoBehaviour {
 
@@ -25,8 +29,8 @@ namespace DeckSwipe {
 		public int maxDays = 7;
 		private int currentDay = 1;
 		private int currentEnergy = 1;
-
-		public enum ResourceType { Health, Supplies, Safety, Community }
+		private DisasterType selectedDisaster = DisasterType.None;
+		private bool disasterCardDisplayed;
 
 		[Header("Game Over Conditions")]
 		[Tooltip("The first resource hitting 0 in this list will trigger its game over card.")]
@@ -35,19 +39,19 @@ namespace DeckSwipe {
 			ResourceType.Supplies,
 			ResourceType.Safety,
 			ResourceType.Community
-		};
+	};
 
-		public CardStorage CardStorage {
-			get { return cardStorage; }
-		}
+	public CardStorage CardStorage {
+		get { return cardStorage; }
+	}
 
-		private CardStorage cardStorage;
-		private ProgressStorage progressStorage;
-		private float daysPassedPreviously;
-		private float daysLastRun;
-		private int saveIntervalCounter;
-		private CardDrawQueue cardDrawQueue = new CardDrawQueue();
-		private PreparednessRunTracker preparednessTracker = new PreparednessRunTracker();
+	private CardStorage cardStorage;
+	private ProgressStorage progressStorage;
+	private float daysPassedPreviously;
+	private float daysLastRun;
+	private int saveIntervalCounter;
+	private CardDrawQueue cardDrawQueue = new CardDrawQueue();
+	private PreparednessRunTracker preparednessTracker = new PreparednessRunTracker();
 
 		private void Awake() {
 			// Listen for Escape key ('Back' on Android) that suspends the game on Android
@@ -91,8 +95,21 @@ namespace DeckSwipe {
 			preparednessTracker.Reset();
 			currentDay = 1;
 			currentEnergy = 1;
+			selectedDisaster = ChooseDisasterType();
+			Debug.Log("[Game] Selected disaster: " + selectedDisaster);
+			ProgressDisplay.ShowTimeProgress(true);
 			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
 			DrawNextCard();
+		}
+
+		private DisasterType ChooseDisasterType() {
+			DisasterType[] disasterTypes = new[] {
+				DisasterType.Storm,
+				DisasterType.Flood,
+				DisasterType.Drought,
+				DisasterType.Wildfire
+			};
+			return disasterTypes[UnityEngine.Random.Range(0, disasterTypes.Length)];
 		}
 
 		public void DrawNextCard() {
@@ -112,7 +129,7 @@ namespace DeckSwipe {
 
 			if (!gameOverTriggered) {
 				IFollowup followup = cardDrawQueue.Next();
-				ICard card = followup?.Fetch(cardStorage) ?? cardStorage.Random();
+				ICard card = followup?.Fetch(cardStorage) ?? cardStorage.Random(selectedDisaster);
 				SpawnCard(card);
 			}
 
@@ -145,6 +162,12 @@ namespace DeckSwipe {
 			
 			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
 			
+			if (disasterCardDisplayed) {
+				disasterCardDisplayed = false;
+				CompleteDisasterRun();
+				return;
+			}
+
 			DrawNextCard();
 		}
 
@@ -176,7 +199,47 @@ namespace DeckSwipe {
 			cardInstance.Controller = this;
 		}
 
+		private void CompleteDisasterRun() {
+			Debug.Log("[Game] Disaster card resolved and run completed.");
+			cardDrawQueue.Clear();
+			LogPreparednessReport();
+		}
+
+		private void LogPreparednessReport() {
+			PreparednessState initialState = new PreparednessState(16, 16, 16, 16);
+			PreparednessState actualFinalState = new PreparednessState(Stats.Health, Stats.Supplies, Stats.Safety, Stats.Community);
+
+			PreparednessReport report = preparednessTracker.BuildReport(
+				initialState,
+				actualFinalState,
+				0,
+				32);
+
+			Debug.Log($"DISASTER HITS! Preparedness: {report.ActualScore}/100 (best possible: {report.BestPossibleScore}/100, gap: {report.ScoreGap}).");
+			Debug.Log($"Actual final stats => H:{report.ActualFinalState.Health} S:{report.ActualFinalState.Supplies} Sa:{report.ActualFinalState.Safety} C:{report.ActualFinalState.Community}");
+			Debug.Log($"Best possible stats => H:{report.BestPossibleFinalState.Health} S:{report.BestPossibleFinalState.Supplies} Sa:{report.BestPossibleFinalState.Safety} C:{report.BestPossibleFinalState.Community}");
+
+			if (report.BestDecisionPath != null && report.BestDecisionPath.Count > 0) {
+				StringBuilder pathBuilder = new StringBuilder();
+				for (int i = 0; i < report.BestDecisionPath.Count; i++) {
+					if (i > 0) {
+						pathBuilder.Append(", ");
+					}
+					pathBuilder.Append(report.BestDecisionPath[i] ? "L" : "R");
+				}
+				Debug.Log($"Best scenario path by turn: {pathBuilder}");
+			}
+		}
+
 		private void TriggerDisasterEnd() {
+			SpecialCard disasterCard = cardStorage.SpecialCard($"disaster_{selectedDisaster.ToString().ToLower()}");
+			if (disasterCard != null) {
+				disasterCardDisplayed = true;
+				ProgressDisplay.ShowTimeProgress(false);
+				SpawnCard(disasterCard);
+				return;
+			}
+
 			PreparednessState initialState = new PreparednessState(16, 16, 16, 16);
 			PreparednessState actualFinalState = new PreparednessState(Stats.Health, Stats.Supplies, Stats.Safety, Stats.Community);
 

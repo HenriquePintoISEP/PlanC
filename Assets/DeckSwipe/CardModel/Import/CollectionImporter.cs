@@ -5,6 +5,8 @@ using System.Net;
 using System.Threading.Tasks;
 using DeckSwipe.CardModel.DrawQueue;
 using DeckSwipe.CardModel.Import.Resource;
+using DeckSwipe.CardModel;
+using DeckSwipe;
 using DeckSwipe.CardModel.Prerequisite;
 using DeckSwipe.Gamestate;
 using Outfrost;
@@ -220,6 +222,8 @@ namespace DeckSwipe.CardModel.Import {
 
 				List<ICardPrerequisite> prerequisites = new List<ICardPrerequisite>();
 
+				List<DisasterType> disasterTypes = ParseDisasterTypes(protoCard.disasterTypes);
+
 				bool failed = false;
 				foreach (ProtoCardPrerequisite prereq in protoCard.cardPrerequisites) {
 					CardPrerequisite cardPrerequisite = new CardPrerequisite(prereq.id);
@@ -264,15 +268,13 @@ namespace DeckSwipe.CardModel.Import {
 						null,
 						leftActionOutcome,
 						rightActionOutcome,
-						prerequisites);
-
+					prerequisites,
+					disasterTypes);
 				characters.TryGetValue(protoCard.characterId, out card.character);
-
-				cards.Add(protoCard.id, card);
-			}
-
+			cards.Add(protoCard.id, card);
+		}
 			Dictionary<string, SpecialCard> specialCards = new Dictionary<string, SpecialCard>();
-			foreach (ProtoSpecialCard protoSpecialCard in collection.specialCards) {
+		foreach (ProtoSpecialCard protoSpecialCard in collection.specialCards) {
 				if (protoSpecialCard.id == null) {
 					Debug.LogWarning("[CollectionImporter] Null id found in SpecialCards");
 					continue;
@@ -353,6 +355,18 @@ namespace DeckSwipe.CardModel.Import {
 					rightActionOutcome = new GameOverOutcome();
 				}
 
+				if (leftActionOutcome == null) {
+					leftActionOutcome = leftActionFollowup != null
+						? new ActionOutcome(0, 0, 0, 0, leftActionFollowup)
+						: new ActionOutcome();
+				}
+
+				if (rightActionOutcome == null) {
+					rightActionOutcome = rightActionFollowup != null
+						? new ActionOutcome(0, 0, 0, 0, rightActionFollowup)
+						: new ActionOutcome();
+				}
+
 				SpecialCard specialCard = new SpecialCard(
 						protoSpecialCard.cardText,
 						leftAction.text,
@@ -367,6 +381,29 @@ namespace DeckSwipe.CardModel.Import {
 			}
 
 			return new ImportedCards(cards, specialCards);
+		}
+
+		private static List<DisasterType> ParseDisasterTypes(List<string> rawTypes) {
+			List<DisasterType> disasterTypes = new List<DisasterType>();
+			if (rawTypes == null) {
+				return disasterTypes;
+			}
+
+			foreach (string rawType in rawTypes) {
+				if (string.IsNullOrWhiteSpace(rawType)) {
+					continue;
+				}
+
+				if (Enum.TryParse<DisasterType>(rawType.Trim(), true, out DisasterType parsed)
+					&& parsed != DisasterType.None) {
+					disasterTypes.Add(parsed);
+				}
+				else {
+					Debug.LogWarning("[CollectionImporter] Invalid disaster type \"" + rawType + "\"");
+				}
+			}
+
+			return disasterTypes;
 		}
 
 		private CardStatus CardStatusFor(string s) {

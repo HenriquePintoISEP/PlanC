@@ -30,5 +30,6 @@
         "specialFollowup": []
     },
     "cardPrerequisites": [],
-    "specialCardPrerequisites": []
+    "specialCardPrerequisites": [],
+    "disasterTypes": []
 }

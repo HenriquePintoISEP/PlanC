@@ -1,0 +1,15 @@
+{
+    "id": "disaster_storm",
+    "characterId": -1,
+    "cardText": "A roaring storm slams into the region, tearing roofs from buildings and flooding streets.",
+    "leftAction": {
+        "text": "I'm Not Prepared",
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "I'm Prepared",
+        "followup": [],
+        "specialFollowup": []
+    }
+}

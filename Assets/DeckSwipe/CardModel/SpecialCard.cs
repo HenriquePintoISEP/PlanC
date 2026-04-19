@@ -61,7 +61,12 @@ namespace DeckSwipe.CardModel {
 			foreach (Card card in dependentCards) {
 				card.CheckPrerequisite(this, controller.CardStorage);
 			}
-			leftSwipeOutcome.Perform(controller);
+			if (leftSwipeOutcome != null) {
+				leftSwipeOutcome.Perform(controller);
+			}
+			else {
+				controller.CardActionPerformed();
+			}
 		}
 
 		public void PerformRightDecision(Game controller) {
@@ -69,7 +74,12 @@ namespace DeckSwipe.CardModel {
 			foreach (Card card in dependentCards) {
 				card.CheckPrerequisite(this, controller.CardStorage);
 			}
-			rightSwipeOutcome.Perform(controller);
+			if (rightSwipeOutcome != null) {
+				rightSwipeOutcome.Perform(controller);
+			}
+			else {
+				controller.CardActionPerformed();
+			}
 		}
 
 		public void AddDependentCard(Card card) {

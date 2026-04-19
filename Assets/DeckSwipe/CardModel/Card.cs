@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using DeckSwipe;
 using DeckSwipe.CardModel.Prerequisite;
 using DeckSwipe.Gamestate;
 using UnityEngine;
@@ -29,6 +31,9 @@ namespace DeckSwipe.CardModel {
 		public IActionOutcome LeftSwipeOutcome => leftSwipeOutcome;
 		public IActionOutcome RightSwipeOutcome => rightSwipeOutcome;
 
+		public IReadOnlyList<DisasterType> DisasterTypes { get; }
+		public bool HasExplicitDisasterTypes => DisasterTypes.Count > 0;
+
 		private readonly List<ICardPrerequisite> prerequisites;
 		private readonly ActionOutcome leftSwipeOutcome;
 		private readonly ActionOutcome rightSwipeOutcome;
@@ -43,7 +48,8 @@ namespace DeckSwipe.CardModel {
 				Character character,
 				ActionOutcome leftOutcome,
 				ActionOutcome rightOutcome,
-				List<ICardPrerequisite> prerequisites) {
+				List<ICardPrerequisite> prerequisites,
+				List<DisasterType> disasterTypes = null) {
 			this.CardText = cardText;
 			this.LeftSwipeText = leftSwipeText;
 			this.RightSwipeText = rightSwipeText;
@@ -51,6 +57,7 @@ namespace DeckSwipe.CardModel {
 			leftSwipeOutcome = leftOutcome;
 			rightSwipeOutcome = rightOutcome;
 			this.prerequisites = prerequisites;
+			DisasterTypes = disasterTypes ?? new List<DisasterType>();
 		}
 
 		public void CardShown(Game controller) {
@@ -74,6 +81,10 @@ namespace DeckSwipe.CardModel {
 				card.CheckPrerequisite(this, controller.CardStorage);
 			}
 			rightSwipeOutcome.Perform(controller);
+		}
+
+		public bool IsApplicableToDisaster(DisasterType disasterType) {
+			return disasterType == DisasterType.None || !HasExplicitDisasterTypes || DisasterTypes.Contains(disasterType);
 		}
 
 		public void CheckPrerequisite(ICard dependency, CardStorage cardStorage) {

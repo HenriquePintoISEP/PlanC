@@ -1,0 +1,15 @@
+{
+    "id": "disaster_wildfire",
+    "characterId": -1,
+    "cardText": "Wildfires race across the land, choking the air and consuming everything in their path.",
+    "leftAction": {
+        "text": "I'm Not Prepared",
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "I'm Prepared",
+        "followup": [],
+        "specialFollowup": []
+    }
+}
