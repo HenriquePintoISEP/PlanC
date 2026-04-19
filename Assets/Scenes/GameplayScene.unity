@@ -852,10 +852,6 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1212053750}
-    - targetCorrespondingSourceObject: {fileID: 224846043186955384, guid: 49950edf979ca40b8b3be3fc84830a03,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 338124617}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 49950edf979ca40b8b3be3fc84830a03, type: 3}
 --- !u!224 &264092537 stripped
@@ -1143,7 +1139,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 264092537}
+  m_Father: {fileID: 1212053750}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
@@ -2819,6 +2815,11 @@ PrefabInstance:
       objectReference: {fileID: 453370888}
     - target: {fileID: 114101158802410498, guid: 8faece18a1a1c4de994242052dfac456,
         type: 3}
+      propertyPath: dayTitleText
+      value: 
+      objectReference: {fileID: 338124618}
+    - target: {fileID: 114101158802410498, guid: 8faece18a1a1c4de994242052dfac456,
+        type: 3}
       propertyPath: daysSurvivedText
       value: 
       objectReference: {fileID: 899990320}
@@ -2827,6 +2828,11 @@ PrefabInstance:
       propertyPath: energyProgressBar
       value: 
       objectReference: {fileID: 993521358}
+    - target: {fileID: 114101158802410498, guid: 8faece18a1a1c4de994242052dfac456,
+        type: 3}
+      propertyPath: energyProgressBarBackground
+      value: 
+      objectReference: {fileID: 381764199}
     - target: {fileID: 114649372411728456, guid: 8faece18a1a1c4de994242052dfac456,
         type: 3}
       propertyPath: m_text
@@ -2989,6 +2995,10 @@ PrefabInstance:
         type: 3}
       insertIndex: 1
       addedObject: {fileID: 1632017461}
+    - targetCorrespondingSourceObject: {fileID: 224054215896423590, guid: 8faece18a1a1c4de994242052dfac456,
+        type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 338124617}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8faece18a1a1c4de994242052dfac456, type: 3}
 --- !u!1001 &1462341542
