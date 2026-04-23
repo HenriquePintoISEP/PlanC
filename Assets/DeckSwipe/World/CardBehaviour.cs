@@ -32,6 +32,9 @@ namespace DeckSwipe.World {
 
 		[Tooltip("If true, ignores target size and uses the absolute 1x1 sprite scale without automatically fitting it in a bounding box.")]
 		public bool forceNativeImageScale = false;
+
+		[Tooltip("How far the card moves horizontally when the first arrow press shows the left or right decision without confirming it.")]
+		public float keyboardTiltDistance = 0.75f;
 		
 		public TextMeshPro leftActionText;
 		public TextMeshPro rightActionText;
@@ -48,6 +51,8 @@ namespace DeckSwipe.World {
 		private AnimationState animationState = AnimationState.Idle;
 		private bool animationSuspended;
 		private bool isDragging;
+		private int keyboardSelectionDirection;
+		private bool keyboardSelectionPending;
 
 		public ICard Card {
 			set {
@@ -128,6 +133,10 @@ namespace DeckSwipe.World {
 					Stats.ShowIndicators(null, 0f);
 				}
 			}
+
+			if (animationState == AnimationState.Idle && !isDragging) {
+				HandleKeyboardInput();
+			}
 		}
 
 		private void UpdateDecisionVisuals(float horizontalDisplacement) {
@@ -153,6 +162,7 @@ namespace DeckSwipe.World {
 			if (animationState != AnimationState.Idle) {
 				return;
 			}
+			ResetKeyboardSelection();
 			isDragging = true;
 			animationSuspended = true;
 			dragStartPosition = transform.position;
@@ -179,6 +189,68 @@ namespace DeckSwipe.World {
 			transform.localEulerAngles = new Vector3(snapRotationAngles.x, snapRotationAngles.y, rotationAngle);
 
 			UpdateDecisionVisuals(horizontalDisplacement);
+		}
+
+		private void HandleKeyboardInput() {
+			if (animationState != AnimationState.Idle || isDragging) {
+				return;
+			}
+
+			if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+				if (keyboardSelectionPending && keyboardSelectionDirection == -1) {
+					ConfirmKeyboardSelection(true);
+				}
+				else {
+					SetKeyboardSelection(-1);
+				}
+			}
+			else if (Input.GetKeyDown(KeyCode.RightArrow)) {
+				if (keyboardSelectionPending && keyboardSelectionDirection == 1) {
+					ConfirmKeyboardSelection(false);
+				}
+				else {
+					SetKeyboardSelection(1);
+				}
+			}
+		}
+
+		private void SetKeyboardSelection(int direction) {
+			keyboardSelectionDirection = direction;
+			keyboardSelectionPending = true;
+
+			float horizontalDisplacement = direction * keyboardTiltDistance;
+			transform.position = new Vector3(snapPosition.x + horizontalDisplacement, snapPosition.y, transform.position.z);
+			float rotationAngle = horizontalDisplacement * dragTiltMultiplier;
+			transform.localEulerAngles = new Vector3(snapRotationAngles.x, snapRotationAngles.y, rotationAngle);
+			UpdateDecisionVisuals(horizontalDisplacement);
+		}
+
+		private void ConfirmKeyboardSelection(bool chooseLeft) {
+			keyboardSelectionPending = false;
+			animationStartPosition = transform.position;
+			animationStartRotationAngles = transform.eulerAngles;
+			animationStartTime = Time.time;
+
+			Controller.PerformDecision(card, chooseLeft);
+
+			Vector3 displacement = animationStartPosition - snapPosition;
+			snapPosition += displacement.normalized
+			                * Util.OrthoCameraWorldDiagonalSize(Camera.main)
+			                * 2.0f;
+			snapRotationAngles = animationStartRotationAngles;
+			animationState = AnimationState.FlyingAway;
+			CardDescriptionDisplay.ResetDescription();
+		}
+
+		private void ResetKeyboardSelection() {
+			if (!keyboardSelectionPending) {
+				return;
+			}
+			keyboardSelectionPending = false;
+			keyboardSelectionDirection = 0;
+			transform.position = snapPosition;
+			transform.localEulerAngles = new Vector3(snapRotationAngles.x, snapRotationAngles.y, snapRotationAngles.z);
+			UpdateDecisionVisuals(0f);
 		}
 
 		public void EndDrag() {

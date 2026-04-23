@@ -28,7 +28,9 @@ namespace DeckSwipe.CardModel {
 		}
 
 		public void Perform(Game controller) {
-			statsModification.Perform();
+			if (statsModification != null) {
+				statsModification.Perform();
+			}
 			if (followup != null) {
 				controller.AddFollowupCard(followup);
 			}

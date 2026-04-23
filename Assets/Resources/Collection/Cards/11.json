@@ -1,0 +1,32 @@
+{
+    "id": 11,
+    "characterId": 121,
+    "cardText": "A working television has been offered to you for free if you can carry it back home.",
+    "leftAction": {
+        "text": "Leave it behind",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 0,
+            "community": 4
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Take the television",
+        "statsModification": {
+            "health": -1,
+            "supplies": 0,
+            "safety": -1,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "Television",
+    "itemOnLeft": false
+}

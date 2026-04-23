@@ -15,6 +15,8 @@ namespace DeckSwipe.CardModel.Import {
 		public List<ProtoCardPrerequisite> cardPrerequisites;
 		public List<ProtoSpecialCardPrerequisite> specialCardPrerequisites;
 		public List<string> disasterTypes;
+		public string itemType;
+		public bool itemOnLeft = true;
 
 		public ProtoCard() {}
 

@@ -1,0 +1,15 @@
+{
+    "id": "power_outage",
+    "characterId": 112,
+    "cardText": "The grid goes dark. Your neighborhood is plunged into a sudden outage.",
+    "leftAction": {
+        "text": "Stay calm and adjust",
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Rush to help neighbors",
+        "followup": [],
+        "specialFollowup": []
+    }
+}

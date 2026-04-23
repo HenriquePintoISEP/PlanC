@@ -1,0 +1,32 @@
+{
+    "id": 12,
+    "characterId": 113,
+    "cardText": "A small handheld radio can keep you tuned into updates when the power goes out.",
+    "leftAction": {
+        "text": "Grab the radio",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 0,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Leave it for someone else",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 0,
+            "community": 2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "Radio",
+    "itemOnLeft": true
+}

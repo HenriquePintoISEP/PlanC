@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using DeckSwipe;
 using DeckSwipe.CardModel;
 using DeckSwipe.CardModel.DrawQueue;
@@ -32,6 +33,10 @@ namespace DeckSwipe {
 		private int currentEnergy = 1;
 		private DisasterType selectedDisaster = DisasterType.None;
 		private bool disasterCardDisplayed;
+		private bool powerOutageTriggered;
+		private bool powerOutageActiveForDay;
+		private int powerOutageDay;
+		private readonly List<DeckSwipe.CardModel.Item> heldItems = new List<DeckSwipe.CardModel.Item>();
 
 		[System.Serializable]
 		public class DayInfo {
@@ -68,6 +73,41 @@ namespace DeckSwipe {
 	private int saveIntervalCounter;
 	private CardDrawQueue cardDrawQueue = new CardDrawQueue();
 	private PreparednessRunTracker preparednessTracker = new PreparednessRunTracker();
+
+	public IReadOnlyList<DeckSwipe.CardModel.Item> HeldItems {
+		get { return heldItems.AsReadOnly(); }
+	}
+
+	public bool HasItem(DeckSwipe.CardModel.ItemType itemType) {
+		return heldItems.Any(item => item.Type == itemType);
+	}
+
+	public bool HasPreparednessItemFor(DisasterType disasterType) {
+		return heldItems.Any(item => item.PreparednessFor != null && item.PreparednessFor.Contains(disasterType));
+	}
+
+	public void AddItem(DeckSwipe.CardModel.Item item) {
+		if (item == null) {
+			return;
+		}
+
+		if (HasItem(item.Type)) {
+			Debug.Log("[Game] Item already held: " + item.Type);
+			return;
+		}
+
+		heldItems.Add(item);
+		Debug.Log("[Game] Added item: " + item.Type);
+	}
+
+	public DeckSwipe.CardModel.Item GetItem(DeckSwipe.CardModel.ItemType itemType) {
+		return heldItems.FirstOrDefault(item => item.Type == itemType);
+	}
+
+	public bool TryGetItem(DeckSwipe.CardModel.ItemType itemType, out DeckSwipe.CardModel.Item item) {
+		item = GetItem(itemType);
+		return item != null;
+	}
 
 		private void Awake() {
 			// Listen for Escape key ('Back' on Android) that suspends the game on Android
@@ -108,14 +148,22 @@ namespace DeckSwipe {
 
 		private void StartGameplayLoop() {
 			Stats.ResetStats();
+			heldItems.Clear();
+			powerOutageTriggered = false;
+			powerOutageActiveForDay = false;
 			preparednessTracker.Reset();
 			currentDay = 1;
 			currentEnergy = 1;
 			if (dayInfos != null && dayInfos.Length > 0) {
 				maxDays = dayInfos.Length;
 			}
+
+			int earliestOutageDay = Mathf.Clamp(Mathf.FloorToInt(maxDays / 3.0f) + 1, 1, maxDays);
+			powerOutageDay = UnityEngine.Random.Range(earliestOutageDay, maxDays + 1);
 			selectedDisaster = ChooseDisasterType();
+			AddItem(ItemLibrary.CreateItem(ItemType.Television));
 			Debug.Log("[Game] Selected disaster: " + selectedDisaster);
+			Debug.Log("[Game] Power outage scheduled for day: " + powerOutageDay);
 			ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
 			ProgressDisplay.ShowTimeProgress(true);
 			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
@@ -155,8 +203,25 @@ namespace DeckSwipe {
 			}
 
 			if (!gameOverTriggered) {
+				if (!powerOutageTriggered && currentEnergy == 1 && currentDay >= powerOutageDay) {
+					bool forceOutage = currentDay == maxDays;
+					float outageChance = forceOutage ? 1.0f : 1.0f / 3.0f;
+					if (forceOutage || UnityEngine.Random.value < outageChance) {
+						SpecialCard outageCard = cardStorage.SpecialCard("power_outage");
+						if (outageCard != null) {
+							powerOutageTriggered = true;
+							powerOutageActiveForDay = true;
+							if (!HasItem(ItemType.Flashlight)) {
+								StatsDisplay.ShowResourceIndicators(false);
+							}
+							SpawnCard(outageCard);
+							return;
+						}
+					}
+				}
+
 				IFollowup followup = cardDrawQueue.Next();
-				ICard card = followup?.Fetch(cardStorage) ?? cardStorage.Random(selectedDisaster);
+				ICard card = followup?.Fetch(cardStorage) ?? SelectNextCard(selectedDisaster);
 				SpawnCard(card);
 			}
 
@@ -164,6 +229,23 @@ namespace DeckSwipe {
 			if (saveIntervalCounter == 0) {
 				progressStorage.Save();
 			}
+		}
+
+		private ICard SelectNextCard(DisasterType disasterType) {
+			Card validCard = cardStorage.Random(disasterType, candidate => {
+				if (!candidate.ItemType.HasValue) {
+					return true;
+				}
+				return !HasItem(candidate.ItemType.Value)
+					&& (candidate.Progress.Status & CardStatus.CardShown) != CardStatus.CardShown;
+			});
+
+			if (validCard != null) {
+				return validCard;
+			}
+
+			// If no valid item card remains, allow non-item cards to repeat as needed.
+			return cardStorage.Random(disasterType, candidate => !candidate.ItemType.HasValue);
 		}
 
 		private int GetStatValue(ResourceType resource) {
@@ -185,6 +267,8 @@ namespace DeckSwipe {
 			if (currentEnergy > maxEnergy) {
 				currentEnergy = 1;
 				currentDay++;
+				powerOutageActiveForDay = false;
+				StatsDisplay.ShowResourceIndicators(true);
 				ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
 			}
 			
