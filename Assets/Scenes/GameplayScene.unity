@@ -146,8 +146,8 @@ RectTransform:
   m_GameObject: {fileID: 16385091}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.7500001, y: 1.7500001, z: 1.7500001}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1735799799}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1121,7 +1121,7 @@ GameObject:
   - component: {fileID: 312544541}
   - component: {fileID: 312544540}
   m_Layer: 0
-  m_Name: Meta Display
+  m_Name: Game Display
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1140,7 +1140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   uiCanvasGroup: {fileID: 312544541}
-  dimAlpha: 0.35
+  dimAlpha: 0.6
 --- !u!225 &312544541
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -1793,8 +1793,8 @@ RectTransform:
   m_GameObject: {fileID: 668951181}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.7500001, y: 1.7500001, z: 1.7500001}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1067006030}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1977,8 +1977,8 @@ RectTransform:
   m_GameObject: {fileID: 844126947}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.7500001, y: 1.7500001, z: 1.7500001}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 436055464}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2327,8 +2327,8 @@ RectTransform:
   m_GameObject: {fileID: 1030183386}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.7500001, y: 1.7500001, z: 1.7500001}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1573788718}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
