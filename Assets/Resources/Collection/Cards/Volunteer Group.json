@@ -1,11 +1,11 @@
 {
-    "id": -1,
-    "characterId": -1,
-    "cardText": "DUMMY CARD - Put this in prerequisites of cards not supposed to be drawn randomly",
+    "id": 123,
+    "characterId": 123,
+    "cardText": "A group of local volunteers is organizing to help reinforce nearby houses",
     "leftAction": {
-        "text": "",
+        "text": "Stay on your own",
         "statsModification": {
-            "health": 0,
+            "health": 1,
             "supplies": 0,
             "safety": 0,
             "community": 0
@@ -14,26 +14,17 @@
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "",
+        "text": "Join them",
         "statsModification": {
             "health": 0,
             "supplies": 0,
             "safety": 0,
-            "community": 0
+            "community": 1
         },
         "followup": [],
         "specialFollowup": []
     },
-    "cardPrerequisites": [
-        {
-            "id": -1,
-            "status": [
-                "CardShown",
-                "RightActionTaken",
-                "LeftActionTaken"
-            ]
-        }
-    ],
+    "cardPrerequisites": [],
     "specialCardPrerequisites": [],
     "disasterTypes": []
 }

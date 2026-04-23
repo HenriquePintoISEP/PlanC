@@ -1,25 +1,25 @@
 {
-    "id": 9,
-    "characterId": 8,
-    "cardText": "Cample card 2",
+    "id": 110,
+    "characterId": 110,
+    "cardText": "You are on your way to prepare your house for the day. Do you stop and talk to your neighbors?",
     "leftAction": {
-        "text": "Sample action 2L",
+        "text": "Talk to them",
         "statsModification": {
-            "health": 0,
+            "health": -1,
             "supplies": 0,
-            "safety": -3,
-            "community": 0
+            "safety": 0,
+            "community": 1
         },
         "followup": [],
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "Sample action 2R",
+        "text": "Ignore it",
         "statsModification": {
-            "health": -2,
-            "supplies": -4,
+            "health": 1,
+            "supplies": 0,
             "safety": 0,
-            "community": 4
+            "community": -1
         },
         "followup": [],
         "specialFollowup": []

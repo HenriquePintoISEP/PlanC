@@ -1,24 +1,24 @@
 {
-    "id": 8,
-    "characterId": 7,
-    "cardText": "Sample card 1",
+    "id": 122,
+    "characterId": 122,
+    "cardText": "You are feeling slightly sick and a medic approachs you.",
     "leftAction": {
-        "text": "Sample action 1L",
+        "text": "Trust him",
         "statsModification": {
-            "health": -4,
-            "supplies": -2,
-            "safety": 4,
+            "health": 1,
+            "supplies": 0,
+            "safety": -2,
             "community": 0
         },
         "followup": [],
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "Sample action 1R",
+        "text": "Don't trust him",
         "statsModification": {
-            "health": 4,
-            "supplies": 2,
-            "safety": -2,
+            "health": -1,
+            "supplies": 0,
+            "safety": 2,
             "community": 0
         },
         "followup": [],

@@ -1,25 +1,25 @@
 {
-    "id": 7,
-    "characterId": 6,
-    "cardText": "Don't you think we should have a tea party after work hours?",
+    "id": 117,
+    "characterId": 117,
+    "cardText": "You planned to stay home and prepare, but the shopping center is getting crowded.",
     "leftAction": {
-        "text": "That's a great idea",
+        "text": "Go now",
         "statsModification": {
-            "health": 2,
+            "health": -1,
             "supplies": 2,
-            "safety": -2,
-            "community": -4
+            "safety": 0,
+            "community": 0
         },
         "followup": [],
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "No, let's not",
+        "text": "Stay home",
         "statsModification": {
-            "health": -4,
+            "health": 2,
             "supplies": 0,
-            "safety": 0,
-            "community": 2
+            "safety": -1,
+            "community": 0
         },
         "followup": [],
         "specialFollowup": []

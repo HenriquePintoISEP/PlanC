@@ -1,25 +1,25 @@
 {
-    "id": 0,
-    "characterId": 0,
-    "cardText": "This is a test card text that should appear on screen.",
+    "id": 108,
+    "characterId": 108,
+    "cardText": "You see a child alone nearby.",
     "leftAction": {
-        "text": "Here goes",
+        "text": "Help",
         "statsModification": {
-            "health": -2,
-            "supplies": 4,
-            "safety": -4,
+            "health": -1,
+            "supplies": 0,
+            "safety": 0,
             "community": 2
         },
         "followup": [],
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "There goes",
+        "text": "Ignore",
         "statsModification": {
-            "health": -6,
+            "health": 2,
             "supplies": 0,
-            "safety": 2,
-            "community": -2
+            "safety": 0,
+            "community": -1
         },
         "followup": [],
         "specialFollowup": []

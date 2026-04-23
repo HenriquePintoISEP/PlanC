@@ -1,32 +1,27 @@
 {
-    "id": 3,
-    "characterId": 3,
-    "cardText": "The scouts come across what looks to be a wrecked ship. Should they explore it?",
+    "id": 119,
+    "characterId": 119,
+    "cardText": "You notice someone unfamiliar standing near houses on your street.",
     "leftAction": {
-        "text": "No",
+        "text": "Approach",
         "statsModification": {
-            "health": 0,
+            "health": -1,
             "supplies": 0,
-            "safety": 0,
+            "safety": 1,
             "community": 0
         },
         "followup": [],
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "Yes",
+        "text": "Stay away",
         "statsModification": {
-            "health": 0,
+            "health": 1,
             "supplies": 0,
-            "safety": 0,
+            "safety": -1,
             "community": 0
         },
-        "followup": [
-            {
-                "id": 4,
-                "delay": 2
-            }
-        ],
+        "followup": [],
         "specialFollowup": []
     },
     "cardPrerequisites": [],

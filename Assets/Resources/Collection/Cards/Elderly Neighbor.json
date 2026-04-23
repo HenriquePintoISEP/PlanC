@@ -1,25 +1,25 @@
 {
-    "id": 5,
-    "characterId": 4,
-    "cardText": "The guards bring a woman to you. She yells \"These swine have been pestering me day in day out! When will they leave me alone?\".",
+    "id": 104,
+    "characterId": 104,
+    "cardText": "You are organizing your supplies when you notice your elderly neighbor struggling outside.",
     "leftAction": {
-        "text": "Reprimend the guards",
+        "text": "Ignore them",
         "statsModification": {
             "health": 1,
-            "supplies": 1,
+            "supplies": 0,
             "safety": 0,
-            "community": 0
+            "community": -1
         },
         "followup": [],
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "Leave it be",
+        "text": "Help them",
         "statsModification": {
             "health": -1,
             "supplies": 0,
             "safety": 0,
-            "community": 0
+            "community": 1
         },
         "followup": [],
         "specialFollowup": []
