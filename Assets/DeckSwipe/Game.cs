@@ -24,6 +24,7 @@ namespace DeckSwipe {
 		public Vector3 spawnPosition;
 		public Sprite defaultCharacterSprite;
 		public bool loadRemoteCollectionFirst;
+		public PowerOutageDisplay powerOutageDisplay;
 
 		[Header("Time Progression")]
 		public int maxEnergy = 3;
@@ -36,6 +37,12 @@ namespace DeckSwipe {
 		private bool powerOutageTriggered;
 		private bool powerOutageActiveForDay;
 		private int powerOutageDay;
+		private bool clueDeliveredForCurrentDay;
+		private ClueCollection clueCollection;
+		[Tooltip("Set the imported character ID for Television broadcasts.")]
+		public int televisionCharacterId = 121;
+		[Tooltip("Set the imported character ID for Radio broadcasts.")]
+		public int radioCharacterId = 113;
 		private readonly List<DeckSwipe.CardModel.Item> heldItems = new List<DeckSwipe.CardModel.Item>();
 
 		[System.Serializable]
@@ -126,6 +133,7 @@ namespace DeckSwipe {
 
 			cardStorage = new CardStorage(defaultCharacterSprite, loadRemoteCollectionFirst);
 			progressStorage = new ProgressStorage(cardStorage);
+			clueCollection = ClueLoader.Load();
 
 			GameStartOverlay.FadeOutCallback = StartGameplayLoop;
 		}
@@ -162,6 +170,7 @@ namespace DeckSwipe {
 			powerOutageDay = UnityEngine.Random.Range(earliestOutageDay, maxDays + 1);
 			selectedDisaster = ChooseDisasterType();
 			AddItem(ItemLibrary.CreateItem(ItemType.Television));
+			clueDeliveredForCurrentDay = false;
 			Debug.Log("[Game] Selected disaster: " + selectedDisaster);
 			Debug.Log("[Game] Power outage scheduled for day: " + powerOutageDay);
 			ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
@@ -211,8 +220,9 @@ namespace DeckSwipe {
 						if (outageCard != null) {
 							powerOutageTriggered = true;
 							powerOutageActiveForDay = true;
-							if (!HasItem(ItemType.Flashlight)) {
+							if (!HasItem(ItemType.Flashlight) && !HasItem(ItemType.Generator)) {
 								StatsDisplay.ShowResourceIndicators(false);
+								PowerOutageDisplay.SetDimmed(true);
 							}
 							SpawnCard(outageCard);
 							return;
@@ -220,8 +230,21 @@ namespace DeckSwipe {
 					}
 				}
 
+				if (TrySpawnClueCard()) {
+					return;
+				}
+
 				IFollowup followup = cardDrawQueue.Next();
-				ICard card = followup?.Fetch(cardStorage) ?? SelectNextCard(selectedDisaster);
+				if (followup != null) {
+					SpawnCard(followup.Fetch(cardStorage));
+					return;
+				}
+
+				if (TrySpawnClueCard()) {
+					return;
+				}
+
+				ICard card = SelectNextCard(selectedDisaster);
 				SpawnCard(card);
 			}
 
@@ -258,6 +281,134 @@ namespace DeckSwipe {
 			}
 		}
 
+		private enum BroadcastDevice {
+			Television,
+			Radio
+		}
+
+		private enum ClueSpecificity {
+			Generic,
+			Specific,
+			MostSpecific
+		}
+
+		private bool TrySpawnClueCard() {
+			if (clueDeliveredForCurrentDay || clueCollection == null) {
+				return false;
+			}
+
+			if (!TryGetBroadcastDevice(out BroadcastDevice device)) {
+				return false;
+			}
+
+			string clueText = GetClueTextForCurrentDay();
+			if (string.IsNullOrWhiteSpace(clueText)) {
+				return false;
+			}
+
+			Character broadcaster = GetBroadcastCharacter(device);
+
+			ProgressDisplay.ShowTimeProgress(false);
+			SpecialCard clueCard = new SpecialCard(
+				clueText,
+				"What?",
+				"Okay.",
+				broadcaster,
+				new ClueOutcome(),
+				new ClueOutcome());
+
+			SpawnCard(clueCard);
+			clueDeliveredForCurrentDay = true;
+			return true;
+		}
+
+		private bool TryGetBroadcastDevice(out BroadcastDevice device) {
+			if (powerOutageActiveForDay) {
+				if (HasItem(ItemType.Generator)) {
+					device = BroadcastDevice.Television;
+					return true;
+				}
+				if (HasItem(ItemType.Radio)) {
+					device = BroadcastDevice.Radio;
+					return true;
+				}
+				device = default;
+				return false;
+			}
+
+			if (HasItem(ItemType.Television)) {
+				device = BroadcastDevice.Television;
+				return true;
+			}
+
+			device = default;
+			return false;
+		}
+
+		private ClueSpecificity GetCurrentClueSpecificity() {
+			if (powerOutageActiveForDay) {
+				return ClueSpecificity.MostSpecific;
+			}
+
+			float ratio = maxDays <= 0 ? 1.0f : (float)currentDay / maxDays;
+			if (ratio <= 0.35f) {
+				return ClueSpecificity.Generic;
+			}
+			if (ratio <= 0.65f) {
+				return ClueSpecificity.Specific;
+			}
+			if (ratio <= 0.80f) {
+				return ClueSpecificity.MostSpecific;
+			}
+			return ClueSpecificity.MostSpecific;
+		}
+
+		private Character GetBroadcastCharacter(BroadcastDevice device) {
+			int characterId = device == BroadcastDevice.Television
+				? televisionCharacterId
+				: radioCharacterId;
+
+			Character character = null;
+			if (characterId >= 0 && cardStorage != null) {
+				character = cardStorage.Character(characterId);
+			}
+
+			if (character != null) {
+				return character;
+			}
+
+			return new Character(device == BroadcastDevice.Television ? "Television" : "Radio", defaultCharacterSprite);
+		}
+
+		private string GetClueTextForCurrentDay() {
+			ClueSpecificity specificity = GetCurrentClueSpecificity();
+			string clueText = null;
+
+			switch (specificity) {
+				case ClueSpecificity.Generic:
+					clueText = clueCollection.GetRandomGeneric();
+					break;
+				case ClueSpecificity.Specific:
+					clueText = clueCollection.GetRandomSpecific(selectedDisaster);
+					break;
+				case ClueSpecificity.MostSpecific:
+					clueText = clueCollection.GetRandomMostSpecific(selectedDisaster);
+					break;
+			}
+
+			if (string.IsNullOrWhiteSpace(clueText)
+				&& specificity == ClueSpecificity.MostSpecific) {
+				clueText = clueCollection.GetRandomSpecific(selectedDisaster);
+			}
+
+			if (string.IsNullOrWhiteSpace(clueText)
+				&& specificity != ClueSpecificity.Generic) {
+				clueText = clueCollection.GetRandomGeneric();
+			}
+
+			return clueText;
+		}
+
 		public void CardActionPerformed() {
 			// Updated the internal tracker for legacy data/statistics so longest run tracking still works
 			progressStorage.Progress.AddDays(1.0f / maxEnergy, daysPassedPreviously);
@@ -268,7 +419,9 @@ namespace DeckSwipe {
 				currentEnergy = 1;
 				currentDay++;
 				powerOutageActiveForDay = false;
+				clueDeliveredForCurrentDay = false;
 				StatsDisplay.ShowResourceIndicators(true);
+				PowerOutageDisplay.SetDimmed(false);
 				ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
 			}
 			

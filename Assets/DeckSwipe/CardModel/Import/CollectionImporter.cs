@@ -403,7 +403,7 @@ namespace DeckSwipe.CardModel.Import {
 				specialCards.Add(protoSpecialCard.id, specialCard);
 			}
 
-			return new ImportedCards(cards, specialCards);
+			return new ImportedCards(cards, specialCards, characters);
 		}
 
 		private static List<DisasterType> ParseDisasterTypes(List<string> rawTypes) {

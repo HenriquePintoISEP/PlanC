@@ -6,9 +6,9 @@
         "text": "Decline them",
         "statsModification": {
             "health": 0,
-            "supplies": 0,
-            "safety": 0,
-            "community": 4
+            "supplies": 1,
+            "safety": -1,
+            "community": 1
         },
         "followup": [],
         "specialFollowup": []
@@ -18,8 +18,8 @@
         "statsModification": {
             "health": 0,
             "supplies": 0,
-            "safety": 1,
-            "community": -2
+            "safety": 4,
+            "community": 0
         },
         "followup": [],
         "specialFollowup": []

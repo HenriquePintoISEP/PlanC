@@ -19,6 +19,7 @@ namespace DeckSwipe.Gamestate {
 
 		public Dictionary<int, Card> Cards { get; private set; }
 		public Dictionary<string, SpecialCard> SpecialCards { get; private set; }
+		public Dictionary<int, Character> Characters { get; private set; }
 
 		public Task CardCollectionImport { get; }
 
@@ -100,6 +101,14 @@ namespace DeckSwipe.Gamestate {
 			return card;
 		}
 
+		public Character Character(int id) {
+			Character character;
+			if (Characters != null && Characters.TryGetValue(id, out character)) {
+				return character;
+			}
+			return null;
+		}
+
 		public void ResolvePrerequisites() {
 			foreach (Card card in Cards.Values) {
 				card.ResolvePrerequisites(this);
@@ -118,6 +127,7 @@ namespace DeckSwipe.Gamestate {
 					await new CollectionImporter(defaultSprite, loadRemoteCollectionFirst).Import();
 			Cards = importedCards.cards;
 			SpecialCards = importedCards.specialCards;
+			Characters = importedCards.characters;
 			if (Cards == null || Cards.Count == 0) {
 				PopulateFallback();
 			}

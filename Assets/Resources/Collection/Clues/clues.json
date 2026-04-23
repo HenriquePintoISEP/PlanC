@@ -1,0 +1,59 @@
+{
+  "generic": [
+    "A distant bulletin mentions strange weather systems forming far away, with static cutting the signal. bzz",
+    "A headline warns of rising water, strong winds and dry patches building across the region. bzz",
+    "A report hears talk of an unusual heat wave and wildfires, but the details are still fuzzy. bzz"
+  ],
+  "specific": [
+    {
+      "disasterType": "Storm",
+      "clues": [
+        "Local forecast models are tracking a severe storm front moving toward the coast. bzz"
+      ]
+    },
+    {
+      "disasterType": "Flood",
+      "clues": [
+        "Rainfall totals are climbing and river levels are rising faster than expected. bzz"
+      ]
+    },
+    {
+      "disasterType": "Drought",
+      "clues": [
+        "Reservoirs are shrinking and the dry spell is expected to get worse before it gets better. bzz"
+      ]
+    },
+    {
+      "disasterType": "Wildfire",
+      "clues": [
+        "A brush fire is spreading quickly in the hills and air alerts have been issued. bzz"
+      ]
+    }
+  ],
+  "mostSpecific": [
+    {
+      "disasterType": "Storm",
+      "clues": [
+        "Meteorologists are sounding sirens for a coastal storm surge and tornado risk. kzzt"
+      ]
+    },
+    {
+      "disasterType": "Flood",
+      "clues": [
+        "Flood barriers are starting to fail and crews are urging evacuation from low ground. kzzt"
+      ]
+    },
+    {
+      "disasterType": "Drought",
+      "clues": [
+        "Water rationing is being announced as reservoirs hit record lows and wells run dry. kzzt"
+      ]
+    },
+    {
+      "disasterType": "Wildfire",
+      "clues": [
+        "Evacuation orders are unfolding as a wildfire jumps roads and threatens homes. kzzt"
+      ]
+    }
+  ]
+}

@@ -47,6 +47,7 @@ namespace DeckSwipe.CardModel {
 			this.character = character;
 			leftSwipeOutcome = leftOutcome;
 			rightSwipeOutcome = rightOutcome;
+			progress = new SpecialCardProgress(string.Empty, CardStatus.None);
 		}
 
 		public void CardShown(Game controller) {
