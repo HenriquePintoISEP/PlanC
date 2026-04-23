@@ -1,0 +1,32 @@
+{
+    "id": 15,
+    "characterId": 107,
+    "cardText": "A volunteer has a life vest ready if you can take it now.",
+    "leftAction": {
+        "text": "Take the life vest",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 0,
+            "community": -2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Pass on it",
+        "statsModification": {
+            "health": 0,
+            "supplies": 1,
+            "safety": 0,
+            "community": 1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "LifeVest",
+    "itemOnLeft": true
+}

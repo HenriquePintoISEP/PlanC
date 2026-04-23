@@ -33,10 +33,10 @@ namespace DeckSwipe.CardModel {
 
 		public IReadOnlyList<DisasterType> DisasterTypes { get; }
 		public bool HasExplicitDisasterTypes => DisasterTypes.Count > 0;
-
-		private readonly List<ICardPrerequisite> prerequisites;
-		private readonly ActionOutcome leftSwipeOutcome;
-		private readonly ActionOutcome rightSwipeOutcome;
+	public ItemType? ItemType { get; }
+	private readonly List<ICardPrerequisite> prerequisites;
+		private readonly IActionOutcome leftSwipeOutcome;
+		private readonly IActionOutcome rightSwipeOutcome;
 
 		private Dictionary<ICard, ICardPrerequisite> unsatisfiedPrerequisites;
 		private List<Card> dependentCards = new List<Card>();
@@ -46,10 +46,11 @@ namespace DeckSwipe.CardModel {
 				string leftSwipeText,
 				string rightSwipeText,
 				Character character,
-				ActionOutcome leftOutcome,
-				ActionOutcome rightOutcome,
+				IActionOutcome leftOutcome,
+				IActionOutcome rightOutcome,
 				List<ICardPrerequisite> prerequisites,
-				List<DisasterType> disasterTypes = null) {
+				List<DisasterType> disasterTypes = null,
+				ItemType? itemType = null) {
 			this.CardText = cardText;
 			this.LeftSwipeText = leftSwipeText;
 			this.RightSwipeText = rightSwipeText;
@@ -58,6 +59,7 @@ namespace DeckSwipe.CardModel {
 			rightSwipeOutcome = rightOutcome;
 			this.prerequisites = prerequisites;
 			DisasterTypes = disasterTypes ?? new List<DisasterType>();
+			ItemType = itemType;
 		}
 
 		public void CardShown(Game controller) {

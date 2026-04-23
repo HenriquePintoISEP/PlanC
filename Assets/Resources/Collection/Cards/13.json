@@ -1,0 +1,32 @@
+{
+    "id": 13,
+    "characterId": 106,
+    "cardText": "A portable generator sits in the back of a hardware store. It would be a lifesaver later.",
+    "leftAction": {
+        "text": "Carry it home",
+        "statsModification": {
+            "health": 0,
+            "supplies": -1,
+            "safety": -2,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Leave it where it is",
+        "statsModification": {
+            "health": 0,
+            "supplies": 1,
+            "safety": 1,
+            "community": 1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "Generator",
+    "itemOnLeft": true
+}

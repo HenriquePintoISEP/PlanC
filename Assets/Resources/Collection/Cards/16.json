@@ -1,0 +1,32 @@
+{
+    "id": 16,
+    "characterId": 103,
+    "cardText": "A compass sits on the table, its needle steady and ready to guide you.",
+    "leftAction": {
+        "text": "Leave it behind",
+        "statsModification": {
+            "health": 0,
+            "supplies": 1,
+            "safety": 1,
+            "community": 1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Take the compass",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 0,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "Compass",
+    "itemOnLeft": false
+}

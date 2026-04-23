@@ -1,0 +1,32 @@
+{
+    "id": 23,
+    "characterId": 116,
+    "cardText": "A stack of sandbags is being loaded into a truck — they can keep floodwater from breaching your home.",
+    "leftAction": {
+        "text": "Leave them here",
+        "statsModification": {
+            "health": 0,
+            "supplies": -1,
+            "safety": 2,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Take the sandbags",
+        "statsModification": {
+            "health": 0,
+            "supplies": 2,
+            "safety": 1,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "Sandbags",
+    "itemOnLeft": true
+}

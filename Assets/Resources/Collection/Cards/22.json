@@ -1,0 +1,32 @@
+{
+    "id": 22,
+    "characterId": 102,
+    "cardText": "A pile of boards is ready to reinforce a house window before the storm.",
+    "leftAction": {
+        "text": "Take the boards",
+        "statsModification": {
+            "health": 0,
+            "supplies": 2,
+            "safety": 1,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Leave them alone",
+        "statsModification": {
+            "health": 2,
+            "supplies": 1,
+            "safety": 0,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "BoardedUpWindow",
+    "itemOnLeft": true
+}

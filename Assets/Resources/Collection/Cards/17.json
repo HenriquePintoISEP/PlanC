@@ -1,0 +1,32 @@
+{
+    "id": 17,
+    "characterId": 109,
+    "cardText": "A medkit is sitting in the aid station: relief if you need it.",
+    "leftAction": {
+        "text": "Leave it for someone else",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 0,
+            "community": 4
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Take the medkit",
+        "statsModification": {
+            "health": 4,
+            "supplies": 0,
+            "safety": 0,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "Medkit",
+    "itemOnLeft": false
+}

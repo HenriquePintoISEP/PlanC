@@ -1,0 +1,32 @@
+{
+    "id": 20,
+    "characterId": 120,
+    "cardText": "A Swiss Army knife is being offered as a helpful tool for any emergency repair.",
+    "leftAction": {
+        "text": "Take the Swiss Knife",
+        "statsModification": {
+            "health": 0,
+            "supplies": 1,
+            "safety": 1,
+            "community": -1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Pass it along",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": -1,
+            "community": 2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "SwissKnife",
+    "itemOnLeft": true
+}

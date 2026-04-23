@@ -1,0 +1,32 @@
+{
+    "id": 19,
+    "characterId": 118,
+    "cardText": "A survival book is being passed around — it contains practical advice for extreme situations.",
+    "leftAction": {
+        "text": "Take the survival book",
+        "statsModification": {
+            "health": 1,
+            "supplies": 0,
+            "safety": 2,
+            "community": -2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Leave it behind",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": -2,
+            "community": -2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "SurvivalBook",
+    "itemOnLeft": true
+}

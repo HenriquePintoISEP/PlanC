@@ -217,8 +217,28 @@ namespace DeckSwipe.CardModel.Import {
 					rightActionFollowup = rightAction.specialFollowup[0];
 				}
 
-				ActionOutcome leftActionOutcome = new ActionOutcome(leftAction.statsModification, leftActionFollowup);
-				ActionOutcome rightActionOutcome = new ActionOutcome(rightAction.statsModification, rightActionFollowup);
+				Item item = null;
+				ItemType? cardItemType = null;
+				if (!string.IsNullOrWhiteSpace(protoCard.itemType)) {
+					ItemType? parsedItemType = ParseItemType(protoCard.itemType);
+					if (parsedItemType.HasValue) {
+						cardItemType = parsedItemType.Value;
+						item = ItemLibrary.CreateItem(parsedItemType.Value);
+					}
+				}
+
+				IActionOutcome leftActionOutcome;
+				IActionOutcome rightActionOutcome;
+				if (item != null && protoCard.itemOnLeft) {
+					leftActionOutcome = new ItemOutcome(item, leftAction.statsModification, leftActionFollowup);
+					rightActionOutcome = new ActionOutcome(rightAction.statsModification, rightActionFollowup);
+				} else if (item != null) {
+					leftActionOutcome = new ActionOutcome(leftAction.statsModification, leftActionFollowup);
+					rightActionOutcome = new ItemOutcome(item, rightAction.statsModification, rightActionFollowup);
+				} else {
+					leftActionOutcome = new ActionOutcome(leftAction.statsModification, leftActionFollowup);
+					rightActionOutcome = new ActionOutcome(rightAction.statsModification, rightActionFollowup);
+				}
 
 				List<ICardPrerequisite> prerequisites = new List<ICardPrerequisite>();
 
@@ -261,15 +281,18 @@ namespace DeckSwipe.CardModel.Import {
 					continue;
 				}
 
+				string cardText = protoCard.cardText;
+
 				Card card = new Card(
-						protoCard.cardText,
+						cardText,
 						leftAction.text,
 						rightAction.text,
 						null,
 						leftActionOutcome,
 						rightActionOutcome,
 					prerequisites,
-					disasterTypes);
+					disasterTypes,
+					cardItemType);
 				characters.TryGetValue(protoCard.characterId, out card.character);
 			cards.Add(protoCard.id, card);
 		}
@@ -404,6 +427,19 @@ namespace DeckSwipe.CardModel.Import {
 			}
 
 			return disasterTypes;
+		}
+
+		private static ItemType? ParseItemType(string rawType) {
+			if (string.IsNullOrWhiteSpace(rawType)) {
+				return null;
+			}
+
+			if (Enum.TryParse<ItemType>(rawType.Trim(), true, out ItemType parsed)) {
+				return parsed;
+			}
+
+			Debug.LogWarning("[CollectionImporter] Invalid item type \"" + rawType + "\"");
+			return null;
 		}
 
 		private CardStatus CardStatusFor(string s) {

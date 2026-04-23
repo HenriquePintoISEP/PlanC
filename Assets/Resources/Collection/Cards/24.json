@@ -1,0 +1,32 @@
+{
+    "id": 24,
+    "characterId": 124,
+    "cardText": "A crate of water bottles is being handed out — clean water is always vital.",
+    "leftAction": {
+        "text": "Take the water bottles",
+        "statsModification": {
+            "health": 2,
+            "supplies": 2,
+            "safety": 0,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Leave them behind",
+        "statsModification": {
+            "health": -1,
+            "supplies": -1,
+            "safety": 0,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "WaterBottles",
+    "itemOnLeft": true
+}

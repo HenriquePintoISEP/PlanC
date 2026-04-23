@@ -1,0 +1,32 @@
+{
+    "id": 25,
+    "characterId": 115,
+    "cardText": "A length of rope can help you climb, secure cargo, or pull someone to safety.",
+    "leftAction": {
+        "text": "Take the rope",
+        "statsModification": {
+            "health": 0,
+            "supplies": 4,
+            "safety": 0,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Leave it here",
+        "statsModification": {
+            "health": 1,
+            "supplies": 2,
+            "safety": 0,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "Rope",
+    "itemOnLeft": true
+}

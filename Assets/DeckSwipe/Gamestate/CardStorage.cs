@@ -34,24 +34,35 @@ namespace DeckSwipe.Gamestate {
 			return drawableCards[UnityEngine.Random.Range(0, drawableCards.Count)];
 		}
 
-		public Card Random(DisasterType disasterType) {
-			if (drawableCards.Count == 0) {
-				return null;
-			}
+	public Card Random(System.Func<Card, bool> filter) {
+		List<Card> filteredCards = drawableCards
+				.Where(card => filter == null || filter(card))
+				.ToList();
+		if (filteredCards.Count == 0) {
+			return null;
+		}
+		return filteredCards[UnityEngine.Random.Range(0, filteredCards.Count)];
+	}
 
-			List<Card> disasterSpecificCards = drawableCards
-					.Where(card => card.HasExplicitDisasterTypes && card.IsApplicableToDisaster(disasterType))
-					.ToList();
-			List<Card> generalCards = drawableCards
-					.Where(card => !card.HasExplicitDisasterTypes)
-					.ToList();
+	public Card Random(DisasterType disasterType) {
+		return Random(disasterType, null);
+	}
 
-			if (disasterType == DisasterType.None || disasterSpecificCards.Count == 0) {
-				if (generalCards.Count > 0) {
-					return generalCards[UnityEngine.Random.Range(0, generalCards.Count)];
-				}
-				return Random();
+	public Card Random(DisasterType disasterType, System.Func<Card, bool> filter) {
+		List<Card> disasterSpecificCards = drawableCards
+				.Where(card => card.HasExplicitDisasterTypes && card.IsApplicableToDisaster(disasterType)
+					&& (filter == null || filter(card)))
+				.ToList();
+		List<Card> generalCards = drawableCards
+				.Where(card => !card.HasExplicitDisasterTypes && (filter == null || filter(card)))
+				.ToList();
+
+		if (disasterType == DisasterType.None || disasterSpecificCards.Count == 0) {
+			if (generalCards.Count > 0) {
+				return generalCards[UnityEngine.Random.Range(0, generalCards.Count)];
 			}
+			return Random(filter);
+		}
 
 			List<(Card card, int weight)> weightedCandidates = new List<(Card card, int weight)>();
 			weightedCandidates.AddRange(disasterSpecificCards.Select(card => (card, 5)));

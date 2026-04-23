@@ -1,0 +1,32 @@
+{
+    "id": 14,
+    "characterId": 105,
+    "cardText": "A flashlight is sitting on a counter, batteries included.",
+    "leftAction": {
+        "text": "Walk away",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 0,
+            "community": 2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Take the flashlight",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": -1,
+            "community": -1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": [],
+    "itemType": "Flashlight",
+    "itemOnLeft": false
+}
