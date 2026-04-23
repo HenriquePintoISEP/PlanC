@@ -39,10 +39,13 @@ namespace DeckSwipe {
 		private int powerOutageDay;
 		private bool clueDeliveredForCurrentDay;
 		private ClueCollection clueCollection;
+
 		[Tooltip("Set the imported character ID for Television broadcasts.")]
 		public int televisionCharacterId = 121;
+
 		[Tooltip("Set the imported character ID for Radio broadcasts.")]
 		public int radioCharacterId = 113;
+
 		private readonly List<DeckSwipe.CardModel.Item> heldItems = new List<DeckSwipe.CardModel.Item>();
 
 		[System.Serializable]
@@ -67,54 +70,57 @@ namespace DeckSwipe {
 			ResourceType.Supplies,
 			ResourceType.Safety,
 			ResourceType.Community
-	};
+		};
 
-	public CardStorage CardStorage {
-		get { return cardStorage; }
-	}
-
-	private CardStorage cardStorage;
-	private ProgressStorage progressStorage;
-	private float daysPassedPreviously;
-	private float daysLastRun;
-	private int saveIntervalCounter;
-	private CardDrawQueue cardDrawQueue = new CardDrawQueue();
-	private PreparednessRunTracker preparednessTracker = new PreparednessRunTracker();
-
-	public IReadOnlyList<DeckSwipe.CardModel.Item> HeldItems {
-		get { return heldItems.AsReadOnly(); }
-	}
-
-	public bool HasItem(DeckSwipe.CardModel.ItemType itemType) {
-		return heldItems.Any(item => item.Type == itemType);
-	}
-
-	public bool HasPreparednessItemFor(DisasterType disasterType) {
-		return heldItems.Any(item => item.PreparednessFor != null && item.PreparednessFor.Contains(disasterType));
-	}
-
-	public void AddItem(DeckSwipe.CardModel.Item item) {
-		if (item == null) {
-			return;
+		public CardStorage CardStorage {
+			get { return cardStorage; }
 		}
 
-		if (HasItem(item.Type)) {
-			Debug.Log("[Game] Item already held: " + item.Type);
-			return;
+		private CardStorage cardStorage;
+		private ProgressStorage progressStorage;
+		private float daysPassedPreviously;
+		private float daysLastRun;
+		private int saveIntervalCounter;
+		private CardDrawQueue cardDrawQueue = new CardDrawQueue();
+		private PreparednessRunTracker preparednessTracker = new PreparednessRunTracker();
+
+		// Prevents the same normal random card from appearing twice in a row.
+		private Card lastRandomCard;
+
+		public IReadOnlyList<DeckSwipe.CardModel.Item> HeldItems {
+			get { return heldItems.AsReadOnly(); }
 		}
 
-		heldItems.Add(item);
-		Debug.Log("[Game] Added item: " + item.Type);
-	}
+		public bool HasItem(DeckSwipe.CardModel.ItemType itemType) {
+			return heldItems.Any(item => item.Type == itemType);
+		}
 
-	public DeckSwipe.CardModel.Item GetItem(DeckSwipe.CardModel.ItemType itemType) {
-		return heldItems.FirstOrDefault(item => item.Type == itemType);
-	}
+		public bool HasPreparednessItemFor(DisasterType disasterType) {
+			return heldItems.Any(item => item.PreparednessFor != null && item.PreparednessFor.Contains(disasterType));
+		}
 
-	public bool TryGetItem(DeckSwipe.CardModel.ItemType itemType, out DeckSwipe.CardModel.Item item) {
-		item = GetItem(itemType);
-		return item != null;
-	}
+		public void AddItem(DeckSwipe.CardModel.Item item) {
+			if (item == null) {
+				return;
+			}
+
+			if (HasItem(item.Type)) {
+				Debug.Log("[Game] Item already held: " + item.Type);
+				return;
+			}
+
+			heldItems.Add(item);
+			Debug.Log("[Game] Added item: " + item.Type);
+		}
+
+		public DeckSwipe.CardModel.Item GetItem(DeckSwipe.CardModel.ItemType itemType) {
+			return heldItems.FirstOrDefault(item => item.Type == itemType);
+		}
+
+		public bool TryGetItem(DeckSwipe.CardModel.ItemType itemType, out DeckSwipe.CardModel.Item item) {
+			item = GetItem(itemType);
+			return item != null;
+		}
 
 		private void Awake() {
 			// Listen for Escape key ('Back' on Android) that suspends the game on Android
@@ -160,8 +166,12 @@ namespace DeckSwipe {
 			powerOutageTriggered = false;
 			powerOutageActiveForDay = false;
 			preparednessTracker.Reset();
+
+			lastRandomCard = null;
+
 			currentDay = 1;
 			currentEnergy = 1;
+
 			if (dayInfos != null && dayInfos.Length > 0) {
 				maxDays = dayInfos.Length;
 			}
@@ -171,11 +181,14 @@ namespace DeckSwipe {
 			selectedDisaster = ChooseDisasterType();
 			AddItem(ItemLibrary.CreateItem(ItemType.Television));
 			clueDeliveredForCurrentDay = false;
+
 			Debug.Log("[Game] Selected disaster: " + selectedDisaster);
 			Debug.Log("[Game] Power outage scheduled for day: " + powerOutageDay);
+
 			ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
 			ProgressDisplay.ShowTimeProgress(true);
 			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
+
 			DrawNextCard();
 		}
 
@@ -183,6 +196,7 @@ namespace DeckSwipe {
 			if (dayInfos == null || dayInfos.Length == 0 || day < 1 || day > dayInfos.Length) {
 				return string.Empty;
 			}
+
 			return dayInfos[day - 1].title;
 		}
 
@@ -193,6 +207,7 @@ namespace DeckSwipe {
 				DisasterType.Drought,
 				DisasterType.Wildfire
 			};
+
 			return disasterTypes[UnityEngine.Random.Range(0, disasterTypes.Length)];
 		}
 
@@ -201,8 +216,9 @@ namespace DeckSwipe {
 				TriggerDisasterEnd();
 				return;
 			}
-			
+
 			bool gameOverTriggered = false;
+
 			foreach (ResourceType condition in gameOverConditions) {
 				if (GetStatValue(condition) == 0) {
 					SpawnCard(cardStorage.SpecialCard($"gameover_{condition.ToString().ToLower()}"));
@@ -215,15 +231,19 @@ namespace DeckSwipe {
 				if (!powerOutageTriggered && currentEnergy == 1 && currentDay >= powerOutageDay) {
 					bool forceOutage = currentDay == maxDays;
 					float outageChance = forceOutage ? 1.0f : 1.0f / 3.0f;
+
 					if (forceOutage || UnityEngine.Random.value < outageChance) {
 						SpecialCard outageCard = cardStorage.SpecialCard("power_outage");
+
 						if (outageCard != null) {
 							powerOutageTriggered = true;
 							powerOutageActiveForDay = true;
+
 							if (!HasItem(ItemType.Flashlight) && !HasItem(ItemType.Generator)) {
 								StatsDisplay.ShowResourceIndicators(false);
 								PowerOutageDisplay.SetDimmed(true);
 							}
+
 							SpawnCard(outageCard);
 							return;
 						}
@@ -235,6 +255,7 @@ namespace DeckSwipe {
 				}
 
 				IFollowup followup = cardDrawQueue.Next();
+
 				if (followup != null) {
 					SpawnCard(followup.Fetch(cardStorage));
 					return;
@@ -249,35 +270,90 @@ namespace DeckSwipe {
 			}
 
 			saveIntervalCounter = (saveIntervalCounter - 1) % _saveInterval;
+
 			if (saveIntervalCounter == 0) {
 				progressStorage.Save();
 			}
 		}
 
 		private ICard SelectNextCard(DisasterType disasterType) {
+			// First attempt:
+			// Pick a valid card, while blocking the previous random card.
 			Card validCard = cardStorage.Random(disasterType, candidate => {
+				if (candidate == lastRandomCard) {
+					return false;
+				}
+
 				if (!candidate.ItemType.HasValue) {
 					return true;
 				}
+
 				return !HasItem(candidate.ItemType.Value)
 					&& (candidate.Progress.Status & CardStatus.CardShown) != CardStatus.CardShown;
 			});
 
 			if (validCard != null) {
+				lastRandomCard = validCard;
 				return validCard;
 			}
 
-			// If no valid item card remains, allow non-item cards to repeat as needed.
-			return cardStorage.Random(disasterType, candidate => !candidate.ItemType.HasValue);
+			// Second attempt:
+			// If blocking the previous card made the pool empty,
+			// allow the previous card again.
+			validCard = cardStorage.Random(disasterType, candidate => {
+				if (!candidate.ItemType.HasValue) {
+					return true;
+				}
+
+				return !HasItem(candidate.ItemType.Value)
+					&& (candidate.Progress.Status & CardStatus.CardShown) != CardStatus.CardShown;
+			});
+
+			if (validCard != null) {
+				lastRandomCard = validCard;
+				return validCard;
+			}
+
+			// Third attempt:
+			// If no valid item card remains, allow non-item cards to repeat as needed,
+			// but still try to avoid the previous random card first.
+			validCard = cardStorage.Random(disasterType, candidate =>
+				!candidate.ItemType.HasValue
+				&& candidate != lastRandomCard);
+
+			if (validCard != null) {
+				lastRandomCard = validCard;
+				return validCard;
+			}
+
+			// Final fallback:
+			// If the only possible card is the previous one, allow it.
+			validCard = cardStorage.Random(disasterType, candidate =>
+				!candidate.ItemType.HasValue);
+
+			if (validCard != null) {
+				lastRandomCard = validCard;
+			}
+
+			return validCard;
 		}
 
 		private int GetStatValue(ResourceType resource) {
 			switch (resource) {
-				case ResourceType.Health: return Stats.Health;
-				case ResourceType.Supplies: return Stats.Supplies;
-				case ResourceType.Safety: return Stats.Safety;
-				case ResourceType.Community: return Stats.Community;
-				default: return -1;
+				case ResourceType.Health:
+					return Stats.Health;
+
+				case ResourceType.Supplies:
+					return Stats.Supplies;
+
+				case ResourceType.Safety:
+					return Stats.Safety;
+
+				case ResourceType.Community:
+					return Stats.Community;
+
+				default:
+					return -1;
 			}
 		}
 
@@ -302,6 +378,7 @@ namespace DeckSwipe {
 			}
 
 			string clueText = GetClueTextForCurrentDay();
+
 			if (string.IsNullOrWhiteSpace(clueText)) {
 				return false;
 			}
@@ -309,6 +386,7 @@ namespace DeckSwipe {
 			Character broadcaster = GetBroadcastCharacter(device);
 
 			ProgressDisplay.ShowTimeProgress(false);
+
 			SpecialCard clueCard = new SpecialCard(
 				clueText,
 				"What?",
@@ -319,6 +397,7 @@ namespace DeckSwipe {
 
 			SpawnCard(clueCard);
 			clueDeliveredForCurrentDay = true;
+
 			return true;
 		}
 
@@ -328,10 +407,12 @@ namespace DeckSwipe {
 					device = BroadcastDevice.Television;
 					return true;
 				}
+
 				if (HasItem(ItemType.Radio)) {
 					device = BroadcastDevice.Radio;
 					return true;
 				}
+
 				device = default;
 				return false;
 			}
@@ -351,15 +432,19 @@ namespace DeckSwipe {
 			}
 
 			float ratio = maxDays <= 0 ? 1.0f : (float)currentDay / maxDays;
+
 			if (ratio <= 0.35f) {
 				return ClueSpecificity.Generic;
 			}
+
 			if (ratio <= 0.65f) {
 				return ClueSpecificity.Specific;
 			}
+
 			if (ratio <= 0.80f) {
 				return ClueSpecificity.MostSpecific;
 			}
+
 			return ClueSpecificity.MostSpecific;
 		}
 
@@ -369,6 +454,7 @@ namespace DeckSwipe {
 				: radioCharacterId;
 
 			Character character = null;
+
 			if (characterId >= 0 && cardStorage != null) {
 				character = cardStorage.Character(characterId);
 			}
@@ -377,7 +463,9 @@ namespace DeckSwipe {
 				return character;
 			}
 
-			return new Character(device == BroadcastDevice.Television ? "Television" : "Radio", defaultCharacterSprite);
+			return new Character(
+				device == BroadcastDevice.Television ? "Television" : "Radio",
+				defaultCharacterSprite);
 		}
 
 		private string GetClueTextForCurrentDay() {
@@ -388,9 +476,11 @@ namespace DeckSwipe {
 				case ClueSpecificity.Generic:
 					clueText = clueCollection.GetRandomGeneric();
 					break;
+
 				case ClueSpecificity.Specific:
 					clueText = clueCollection.GetRandomSpecific(selectedDisaster);
 					break;
+
 				case ClueSpecificity.MostSpecific:
 					clueText = clueCollection.GetRandomMostSpecific(selectedDisaster);
 					break;
@@ -412,9 +502,10 @@ namespace DeckSwipe {
 		public void CardActionPerformed() {
 			// Updated the internal tracker for legacy data/statistics so longest run tracking still works
 			progressStorage.Progress.AddDays(1.0f / maxEnergy, daysPassedPreviously);
-			
+
 			// Handle Energy / Day logic
 			currentEnergy++;
+
 			if (currentEnergy > maxEnergy) {
 				currentEnergy = 1;
 				currentDay++;
@@ -424,9 +515,9 @@ namespace DeckSwipe {
 				PowerOutageDisplay.SetDimmed(false);
 				ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
 			}
-			
+
 			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
-			
+
 			if (disasterCardDisplayed) {
 				disasterCardDisplayed = false;
 				CompleteDisasterRun();
@@ -457,8 +548,11 @@ namespace DeckSwipe {
 		}
 
 		private void SpawnCard(ICard card) {
-			CardBehaviour cardInstance = Instantiate(cardPrefab, spawnPosition,
-					Quaternion.Euler(0.0f, -180.0f, 0.0f));
+			CardBehaviour cardInstance = Instantiate(
+				cardPrefab,
+				spawnPosition,
+				Quaternion.Euler(0.0f, -180.0f, 0.0f));
+
 			cardInstance.Card = card;
 			cardInstance.snapPosition.y = spawnPosition.y;
 			cardInstance.Controller = this;
@@ -472,7 +566,11 @@ namespace DeckSwipe {
 
 		private void LogPreparednessReport() {
 			PreparednessState initialState = new PreparednessState(16, 16, 16, 16);
-			PreparednessState actualFinalState = new PreparednessState(Stats.Health, Stats.Supplies, Stats.Safety, Stats.Community);
+			PreparednessState actualFinalState = new PreparednessState(
+				Stats.Health,
+				Stats.Supplies,
+				Stats.Safety,
+				Stats.Community);
 
 			PreparednessReport report = preparednessTracker.BuildReport(
 				initialState,
@@ -486,18 +584,22 @@ namespace DeckSwipe {
 
 			if (report.BestDecisionPath != null && report.BestDecisionPath.Count > 0) {
 				StringBuilder pathBuilder = new StringBuilder();
+
 				for (int i = 0; i < report.BestDecisionPath.Count; i++) {
 					if (i > 0) {
 						pathBuilder.Append(", ");
 					}
+
 					pathBuilder.Append(report.BestDecisionPath[i] ? "L" : "R");
 				}
+
 				Debug.Log($"Best scenario path by turn: {pathBuilder}");
 			}
 		}
 
 		private void TriggerDisasterEnd() {
 			SpecialCard disasterCard = cardStorage.SpecialCard($"disaster_{selectedDisaster.ToString().ToLower()}");
+
 			if (disasterCard != null) {
 				disasterCardDisplayed = true;
 				ProgressDisplay.SetDayLabelText(disasterTitle);
@@ -507,7 +609,11 @@ namespace DeckSwipe {
 			}
 
 			PreparednessState initialState = new PreparednessState(16, 16, 16, 16);
-			PreparednessState actualFinalState = new PreparednessState(Stats.Health, Stats.Supplies, Stats.Safety, Stats.Community);
+			PreparednessState actualFinalState = new PreparednessState(
+				Stats.Health,
+				Stats.Supplies,
+				Stats.Safety,
+				Stats.Community);
 
 			PreparednessReport report = preparednessTracker.BuildReport(
 				initialState,
@@ -521,12 +627,15 @@ namespace DeckSwipe {
 
 			if (report.BestDecisionPath != null && report.BestDecisionPath.Count > 0) {
 				StringBuilder pathBuilder = new StringBuilder();
+
 				for (int i = 0; i < report.BestDecisionPath.Count; i++) {
 					if (i > 0) {
 						pathBuilder.Append(", ");
 					}
+
 					pathBuilder.Append(report.BestDecisionPath[i] ? "L" : "R");
 				}
+
 				Debug.Log($"Best scenario path by turn: {pathBuilder}");
 			}
 		}
