@@ -1,6 +1,6 @@
 {
     "id": "disaster_wildfire",
-    "characterId": -1,
+    "characterId": 152,
     "cardText": "Wildfires race across the land, choking the air and consuming everything in their path.",
     "leftAction": {
         "text": "I'm Not Prepared",

@@ -1,0 +1,30 @@
+{
+    "id": 163,
+    "characterId": 163,
+    "cardText": "You notice someone in your street carefully watching the surroundings.",
+    "leftAction": {
+        "text": "Observe",
+        "statsModification": {
+            "health": -1,
+            "supplies": 0,
+            "safety": 1,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Ignore",
+        "statsModification": {
+            "health": 1,
+            "supplies": 0,
+            "safety": -1,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": []
+}

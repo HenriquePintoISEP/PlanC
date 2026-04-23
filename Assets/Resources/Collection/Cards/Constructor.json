@@ -1,32 +1,30 @@
 {
-    "id": 19,
-    "characterId": 118,
-    "cardText": "A survival book is being passed around, it contains practical advice for extreme situations.",
+    "id": 157,
+    "characterId": 157,
+    "cardText": "A solo constructor is helping reeinforce houses in your neighbour and its looking for a hand",
     "leftAction": {
-        "text": "Take the survival book",
+        "text": "Refuse the call",
         "statsModification": {
-            "health": 1,
+            "health": 0,
             "supplies": 0,
             "safety": 2,
-            "community": -2
+            "community": -1
         },
         "followup": [],
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "Leave it behind",
+        "text": "Go with him",
         "statsModification": {
             "health": 0,
             "supplies": 0,
-            "safety": -2,
-            "community": -2
+            "safety": -1,
+            "community": 2
         },
         "followup": [],
         "specialFollowup": []
     },
     "cardPrerequisites": [],
     "specialCardPrerequisites": [],
-    "disasterTypes": [],
-    "itemType": "SurvivalBook",
-    "itemOnLeft": true
+    "disasterTypes": []
 }

@@ -1,6 +1,6 @@
 {
     "id": "disaster_drought",
-    "characterId": -1,
+    "characterId": 150,
     "cardText": "The dry season persists without relief, and reservoirs crack under relentless heat.",
     "leftAction": {
         "text": "I'm Not Prepared",

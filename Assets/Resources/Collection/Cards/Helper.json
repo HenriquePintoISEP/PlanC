@@ -1,0 +1,30 @@
+{
+    "id": 159,
+    "characterId": 159,
+    "cardText": "Someone nearby is offering help organizing supplies and assisting others.",
+    "leftAction": {
+        "text": "Ignore",
+        "statsModification": {
+            "health": 1,
+            "supplies": 0,
+            "safety": 0,
+            "community": -1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Go with them",
+        "statsModification": {
+            "health": -1,
+            "supplies": 0,
+            "safety": 0,
+            "community": 1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": []
+}

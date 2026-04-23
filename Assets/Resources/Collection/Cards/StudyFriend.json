@@ -1,0 +1,30 @@
+{
+    "id": 161,
+    "characterId": 161,
+    "cardText": "A friend asks you to meet up and study together.",
+    "leftAction": {
+        "text": "Decline",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 1,
+            "community": 0
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Go",
+        "statsModification": {
+            "health": 0,
+            "supplies": 0,
+            "safety": 0,
+            "community": 1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": []
+}

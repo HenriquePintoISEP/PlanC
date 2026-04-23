@@ -1,0 +1,30 @@
+{
+    "id": 156,
+    "characterId": 156,
+    "cardText": "A cleaner is removing leaves from the ground.",
+    "leftAction": {
+        "text": "Help her",
+        "statsModification": {
+            "health": -1,
+            "supplies": 0,
+            "safety": 0,
+            "community": 2
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "rightAction": {
+        "text": "Ignore her",
+        "statsModification": {
+            "health": 2,
+            "supplies": 0,
+            "safety": 0,
+            "community": -1
+        },
+        "followup": [],
+        "specialFollowup": []
+    },
+    "cardPrerequisites": [],
+    "specialCardPrerequisites": [],
+    "disasterTypes": []
+}

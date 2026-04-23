@@ -1,6 +1,6 @@
 {
     "id": "disaster_flood",
-    "characterId": -1,
+    "characterId": 151,
     "cardText": "Rising waters sweep through the city, plunging homes and supplies beneath the flood.",
     "leftAction": {
         "text": "I'm Not Prepared",
