@@ -1,32 +1,36 @@
 {
   "generic": [
-    "A distant bulletin mentions strange weather systems forming far away, with static cutting the signal. bzz",
-    "A headline warns of rising water, strong winds and dry patches building across the region. bzz",
-    "A report hears talk of an unusual heat wave and wildfires, but the details are still fuzzy. bzz"
+    "Information from the morning feed indicates a cold front is gathering offshore, but the message trails off.",
+    "Breaking alerts mention rising water and gusty winds before the details are lost.",
+    "Reports show heat and smoke moving in while the broadcast signal begins to flicker."
   ],
   "specific": [
     {
       "disasterType": "Storm",
       "clues": [
-        "Local forecast models are tracking a severe storm front moving toward the coast. bzz"
+        "Information indicates a strong storm front is building off the coast and radar readings are unstable.",
+        "Data show gale-force winds are expected to move inland soon before the feed cuts out."
       ]
     },
     {
       "disasterType": "Flood",
       "clues": [
-        "Rainfall totals are climbing and river levels are rising faster than expected. bzz"
+        "Reports show water levels are rising and low neighborhoods are first in danger when the signal pops.",
+        "The reporter notes the next downpour could turn creeks into walls of water before the feed breaks."
       ]
     },
     {
       "disasterType": "Drought",
       "clues": [
-        "Reservoirs are shrinking and the dry spell is expected to get worse before it gets better. bzz"
+        "Information shows water restrictions are rolling out and wells are dropping fast as the line crackles.",
+        "The report notes reservoir levels are at historic lows before the correspondent is cut off."
       ]
     },
     {
       "disasterType": "Wildfire",
       "clues": [
-        "A brush fire is spreading quickly in the hills and air alerts have been issued. bzz"
+        "Dispatches indicate smoke is visible on the horizon and evacuation alerts are being issued before the audio ends.",
+        "Field data shows heat waves approaching as the connection drops."
       ]
     }
   ],
@@ -34,25 +38,29 @@
     {
       "disasterType": "Storm",
       "clues": [
-        "Meteorologists are sounding sirens for a coastal storm surge and tornado risk. kzzt"
+        "Meteorological updates warn of huge waves and a tornado threat before the transmission cuts.",
+        "Live reports indicate emergency sirens are sounding in bayfront towns as the storm tightens and the feed fades."
       ]
     },
     {
       "disasterType": "Flood",
       "clues": [
-        "Flood barriers are starting to fail and crews are urging evacuation from low ground. kzzt"
+        "Dispatches indicate flood walls are failing and low ground must clear out now before the line goes dead.",
+        "Advisories warn the river bank could breach any minute, with no further update available."
       ]
     },
     {
       "disasterType": "Drought",
       "clues": [
-        "Water rationing is being announced as reservoirs hit record lows and wells run dry. kzzt"
+        "Alerts say official water rationing begins at midnight and every tap may be capped.",
+        "Reports show the last rains failed and the first wells have run dry before the announcer cuts out."
       ]
     },
     {
       "disasterType": "Wildfire",
       "clues": [
-        "Evacuation orders are unfolding as a wildfire jumps roads and threatens homes. kzzt"
+        "Field reports state a wildfire has consumed the closest highway and crews are evacuating the area.",
+        "Updates warn of fires crossing the evacuation zone before the transmission is lost."
       ]
     }
   ]
