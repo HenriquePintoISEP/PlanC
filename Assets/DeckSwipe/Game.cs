@@ -30,6 +30,7 @@ namespace DeckSwipe {
 		public int maxEnergy = 3;
 		public int maxDays = 7;
 		public string disasterTitle = "Disaster Struck";
+
 		private int currentDay = 1;
 		private int currentEnergy = 1;
 		private DisasterType selectedDisaster = DisasterType.None;
@@ -84,7 +85,6 @@ namespace DeckSwipe {
 		private CardDrawQueue cardDrawQueue = new CardDrawQueue();
 		private PreparednessRunTracker preparednessTracker = new PreparednessRunTracker();
 
-		// Prevents the same normal random card from appearing twice in a row.
 		private Card lastRandomCard;
 
 		public IReadOnlyList<DeckSwipe.CardModel.Item> HeldItems {
@@ -123,8 +123,6 @@ namespace DeckSwipe {
 		}
 
 		private void Awake() {
-			// Listen for Escape key ('Back' on Android) that suspends the game on Android
-			// or ends it on any other platform
 			#if UNITY_ANDROID
 			inputDispatcher.AddKeyUpHandler(KeyCode.Escape,
 					keyCode => {
@@ -181,8 +179,11 @@ namespace DeckSwipe {
 
 			int earliestOutageDay = Mathf.Clamp(Mathf.FloorToInt(maxDays / 3.0f) + 1, 1, maxDays);
 			powerOutageDay = UnityEngine.Random.Range(earliestOutageDay, maxDays + 1);
+
 			selectedDisaster = ChooseDisasterType();
+
 			AddItem(ItemLibrary.CreateItem(ItemType.Television));
+
 			clueDeliveredForCurrentDay = false;
 
 			Debug.Log("[Game] Selected disaster: " + selectedDisaster);
@@ -262,8 +263,6 @@ namespace DeckSwipe {
 		}
 
 		private ICard SelectNextCard(DisasterType disasterType) {
-			// First attempt:
-			// Pick a valid card, while blocking the previous random card.
 			Card validCard = cardStorage.Random(disasterType, candidate => {
 				if (candidate == lastRandomCard) {
 					return false;
@@ -282,9 +281,6 @@ namespace DeckSwipe {
 				return validCard;
 			}
 
-			// Second attempt:
-			// If blocking the previous card made the pool empty,
-			// allow the previous card again.
 			validCard = cardStorage.Random(disasterType, candidate => {
 				if (!candidate.ItemType.HasValue) {
 					return true;
@@ -299,9 +295,6 @@ namespace DeckSwipe {
 				return validCard;
 			}
 
-			// Third attempt:
-			// If no valid item card remains, allow non-item cards to repeat as needed,
-			// but still try to avoid the previous random card first.
 			validCard = cardStorage.Random(disasterType, candidate =>
 				!candidate.ItemType.HasValue
 				&& candidate != lastRandomCard);
@@ -311,8 +304,6 @@ namespace DeckSwipe {
 				return validCard;
 			}
 
-			// Final fallback:
-			// If the only possible card is the previous one, allow it.
 			validCard = cardStorage.Random(disasterType, candidate =>
 				!candidate.ItemType.HasValue);
 
@@ -322,23 +313,6 @@ namespace DeckSwipe {
 
 			return validCard;
 		}
-
-		/* private ICard SelectNextCard(DisasterType disasterType) {
-			Card validCard = cardStorage.Random(disasterType, candidate => {
-				if (!candidate.ItemType.HasValue) {
-					return true;
-				}
-				return !HasItem(candidate.ItemType.Value)
-					&& (candidate.Progress.Status & CardStatus.CardShown) != CardStatus.CardShown;
-			});
-
-			if (validCard != null) {
-				return validCard;
-			}
-
-			// If no valid item card remains, allow non-item cards to repeat as needed.
-			return cardStorage.Random(disasterType, candidate => !candidate.ItemType.HasValue);
-		} */
 
 		private int GetStatValue(ResourceType resource) {
 			switch (resource) {
@@ -413,6 +387,7 @@ namespace DeckSwipe {
 			}
 
 			SpecialCard outageCard = cardStorage.SpecialCard("power_outage");
+
 			if (outageCard == null) {
 				Debug.LogWarning("[Game] Power outage card not found: power_outage");
 				return false;
@@ -480,10 +455,6 @@ namespace DeckSwipe {
 				return ClueSpecificity.Specific;
 			}
 
-			if (ratio <= 0.80f) {
-				return ClueSpecificity.MostSpecific;
-			}
-
 			return ClueSpecificity.MostSpecific;
 		}
 
@@ -539,10 +510,8 @@ namespace DeckSwipe {
 		}
 
 		public void CardActionPerformed() {
-			// Updated the internal tracker for legacy data/statistics so longest run tracking still works
 			progressStorage.Progress.AddDays(1.0f / maxEnergy, daysPassedPreviously);
 
-			// Handle Energy / Day logic
 			currentEnergy++;
 
 			if (currentEnergy > maxEnergy) {
@@ -587,6 +556,11 @@ namespace DeckSwipe {
 		}
 
 		private void SpawnCard(ICard card) {
+			if (card == null) {
+				Debug.LogWarning("[Game] Tried to spawn a null card.");
+				return;
+			}
+
 			CardBehaviour cardInstance = Instantiate(
 				cardPrefab,
 				spawnPosition,
@@ -603,21 +577,26 @@ namespace DeckSwipe {
 			LogPreparednessReport();
 		}
 
-		private void LogPreparednessReport() {
+		private PreparednessReport BuildCurrentPreparednessReport() {
 			PreparednessState initialState = new PreparednessState(16, 16, 16, 16);
+
 			PreparednessState actualFinalState = new PreparednessState(
 				Stats.Health,
 				Stats.Supplies,
 				Stats.Safety,
 				Stats.Community);
 
-			PreparednessReport report = preparednessTracker.BuildReport(
+			return preparednessTracker.BuildReport(
 				initialState,
 				actualFinalState,
 				0,
 				32,
 				HeldItems.Select(item => item.Type).Distinct().ToList(),
 				selectedDisaster);
+		}
+
+		private void LogPreparednessReport() {
+			PreparednessReport report = BuildCurrentPreparednessReport();
 
 			Debug.Log($"DISASTER HITS! Preparedness: {report.ActualScore}/100 (best possible: {report.BestPossibleScore}/100, gap: {report.ScoreGap}).");
 			Debug.Log($"Decision score: {report.DecisionScore}/100, item score: {report.ItemScore}/100, best item score: {report.BestPossibleItemScore}/100");
@@ -628,15 +607,19 @@ namespace DeckSwipe {
 			List<ItemType> expectedDisasterItems = report.OfferedItems
 				.Where(item => PreparednessScoring.IsRelevantItem(item, selectedDisaster))
 				.ToList();
+
 			List<ItemType> ignoredOffered = report.OfferedItems
 				.Where(item => PreparednessScoring.IsIgnoredItem(item))
 				.ToList();
+
 			List<ItemType> heldRelevantDisasterItems = report.ActualItems
 				.Where(item => PreparednessScoring.IsRelevantItem(item, selectedDisaster))
 				.ToList();
+
 			List<ItemType> heldIrrelevantDisasterItems = report.ActualItems
 				.Where(item => PreparednessScoring.IsSpecificPreparednessItem(item) && !PreparednessScoring.IsRelevantItem(item, selectedDisaster))
 				.ToList();
+
 			List<ItemType> heldIgnoredItems = report.ActualItems
 				.Where(item => PreparednessScoring.IsIgnoredItem(item))
 				.ToList();
@@ -647,89 +630,62 @@ namespace DeckSwipe {
 			Debug.Log($"Held irrelevant disaster-specific items: {string.Join(", ", heldIrrelevantDisasterItems)}");
 			Debug.Log($"Held ignored/generic items: {string.Join(", ", heldIgnoredItems)}");
 
-		if (report.ActualDecisionPath != null && report.ActualDecisionPath.Count > 0) {
-			StringBuilder actualPathBuilder = new StringBuilder();
+			LogDecisionPaths(report);
 
-			for (int i = 0; i < report.ActualDecisionPath.Count; i++) {
-				if (i > 0) {
-					actualPathBuilder.Append(", ");
-				}
+			ShowFinalPreparednessScreen(report);
+		}
 
-				actualPathBuilder.Append(report.ActualDecisionPath[i] ? "L" : "R");
+		private void TriggerDisasterEnd() {
+			SpecialCard disasterCard = cardStorage.SpecialCard($"disaster_{selectedDisaster.ToString().ToLower()}");
+
+			if (disasterCard != null) {
+				disasterCardDisplayed = true;
+				ProgressDisplay.SetDayLabelText(disasterTitle);
+				ProgressDisplay.ShowTimeProgress(false);
+				SpawnCard(disasterCard);
+				return;
 			}
 
-			Debug.Log($"Actual player path by turn: {actualPathBuilder}");
+			PreparednessReport report = BuildCurrentPreparednessReport();
+
+			Debug.Log($"DISASTER HITS! Preparedness: {report.ActualScore}/100 (best possible: {report.BestPossibleScore}/100, gap: {report.ScoreGap}).");
+			Debug.Log($"Decision score: {report.DecisionScore}/100, item score: {report.ItemScore}/100, best item score: {report.BestPossibleItemScore}/100");
+			Debug.Log($"Actual final stats => H:{report.ActualFinalState.Health} S:{report.ActualFinalState.Supplies} Sa:{report.ActualFinalState.Safety} C:{report.ActualFinalState.Community}");
+			Debug.Log($"Best possible stats => H:{report.BestPossibleFinalState.Health} S:{report.BestPossibleFinalState.Supplies} Sa:{report.BestPossibleFinalState.Safety} C:{report.BestPossibleFinalState.Community}");
+
+			List<ItemType> relevantOffered = report.OfferedItems
+				.Where(item => PreparednessScoring.IsRelevantItem(item, selectedDisaster))
+				.ToList();
+
+			List<ItemType> ignoredOffered = report.OfferedItems
+				.Where(item => PreparednessScoring.IsIgnoredItem(item))
+				.ToList();
+
+			List<ItemType> relevantHeld = report.ActualItems
+				.Where(item => PreparednessScoring.IsRelevantItem(item, selectedDisaster))
+				.ToList();
+
+			List<ItemType> irrelevantHeld = report.ActualItems
+				.Where(item => !PreparednessScoring.IsRelevantItem(item, selectedDisaster) && !PreparednessScoring.IsIgnoredItem(item))
+				.ToList();
+
+			List<ItemType> ignoredHeld = report.ActualItems
+				.Where(item => PreparednessScoring.IsIgnoredItem(item))
+				.ToList();
+
+			Debug.Log($"Offered relevant items: {string.Join(", ", relevantOffered)}");
+			Debug.Log($"Ignored offered items: {string.Join(", ", ignoredOffered)}");
+			Debug.Log($"Held relevant items: {string.Join(", ", relevantHeld)}");
+			Debug.Log($"Held irrelevant disaster-specific items: {string.Join(", ", irrelevantHeld)}");
+			Debug.Log($"Held ignored/generic items: {string.Join(", ", ignoredHeld)}");
+
+			LogDecisionPaths(report);
+
+			ShowFinalPreparednessScreen(report);
 		}
 
-		if (report.BestDecisionPath != null && report.BestDecisionPath.Count > 0) {
-			StringBuilder bestPathBuilder = new StringBuilder();
-
-			for (int i = 0; i < report.BestDecisionPath.Count; i++) {
-				if (i > 0) {
-					bestPathBuilder.Append(", ");
-				}
-
-				bestPathBuilder.Append(report.BestDecisionPath[i] ? "L" : "R");
-			}
-
-			Debug.Log($"Best scenario path by turn: {bestPathBuilder}");
-		}
-	}
-
-	private void TriggerDisasterEnd() {
-		SpecialCard disasterCard = cardStorage.SpecialCard($"disaster_{selectedDisaster.ToString().ToLower()}");
-
-		if (disasterCard != null) {
-			disasterCardDisplayed = true;
-			ProgressDisplay.SetDayLabelText(disasterTitle);
-			ProgressDisplay.ShowTimeProgress(false);
-			SpawnCard(disasterCard);
-			return;
-		}
-
-		PreparednessState initialState = new PreparednessState(16, 16, 16, 16);
-		PreparednessState actualFinalState = new PreparednessState(
-			Stats.Health,
-			Stats.Supplies,
-			Stats.Safety,
-			Stats.Community);
-
-		PreparednessReport report = preparednessTracker.BuildReport(
-			initialState,
-			actualFinalState,
-			0,
-			32,
-			HeldItems.Select(item => item.Type).Distinct().ToList(),
-			selectedDisaster);
-
-		Debug.Log($"DISASTER HITS! Preparedness: {report.ActualScore}/100 (best possible: {report.BestPossibleScore}/100, gap: {report.ScoreGap}).");
-		Debug.Log($"Decision score: {report.DecisionScore}/100, item score: {report.ItemScore}/100, best item score: {report.BestPossibleItemScore}/100");
-		Debug.Log($"Actual final stats => H:{report.ActualFinalState.Health} S:{report.ActualFinalState.Supplies} Sa:{report.ActualFinalState.Safety} C:{report.ActualFinalState.Community}");
-		Debug.Log($"Best possible stats => H:{report.BestPossibleFinalState.Health} S:{report.BestPossibleFinalState.Supplies} Sa:{report.BestPossibleFinalState.Safety} C:{report.BestPossibleFinalState.Community}");
-
-		List<ItemType> relevantOffered = report.OfferedItems
-			.Where(item => PreparednessScoring.IsRelevantItem(item, selectedDisaster))
-			.ToList();
-		List<ItemType> ignoredOffered = report.OfferedItems
-			.Where(item => PreparednessScoring.IsIgnoredItem(item))
-			.ToList();
-		List<ItemType> relevantHeld = report.ActualItems
-			.Where(item => PreparednessScoring.IsRelevantItem(item, selectedDisaster))
-			.ToList();
-		List<ItemType> irrelevantHeld = report.ActualItems
-			.Where(item => !PreparednessScoring.IsRelevantItem(item, selectedDisaster) && !PreparednessScoring.IsIgnoredItem(item))
-			.ToList();
-		List<ItemType> ignoredHeld = report.ActualItems
-			.Where(item => PreparednessScoring.IsIgnoredItem(item))
-			.ToList();
-
-		Debug.Log($"Offered relevant items: {string.Join(", ", relevantOffered)}");
-		Debug.Log($"Ignored offered items: {string.Join(", ", ignoredOffered)}");
-		Debug.Log($"Held relevant items: {string.Join(", ", relevantHeld)}");
-		Debug.Log($"Held irrelevant disaster-specific items: {string.Join(", ", irrelevantHeld)}");
-		Debug.Log($"Held ignored/generic items: {string.Join(", ", ignoredHeld)}");
-
-		if (report.ActualDecisionPath != null && report.ActualDecisionPath.Count > 0) {
+		private void LogDecisionPaths(PreparednessReport report) {
+			if (report.ActualDecisionPath != null && report.ActualDecisionPath.Count > 0) {
 				StringBuilder actualPathBuilder = new StringBuilder();
 
 				for (int i = 0; i < report.ActualDecisionPath.Count; i++) {
@@ -758,6 +714,91 @@ namespace DeckSwipe {
 			}
 		}
 
-	}
+		private void ShowFinalPreparednessScreen(PreparednessReport report) {
+			if (report == null) {
+				return;
+			}
 
+			string resultTitle = GetPreparednessResultTitle(report.ActualScore);
+			string resultBody = GetPreparednessResultBody(report.ActualScore);
+			string improvementText = BuildPreparednessImprovementText(report);
+
+			FinalPreparednessOverlay.ShowResult(
+				report.ActualScore,
+				resultTitle,
+				resultBody,
+				improvementText
+			);
+		}
+
+		private string GetPreparednessResultTitle(int score) {
+			if (score >= 85) {
+				return "Strong preparation.";
+			}
+
+			if (score >= 65) {
+				return "Solid preparation.";
+			}
+
+			if (score >= 45) {
+				return "Partial preparation.";
+			}
+
+			if (score >= 25) {
+				return "Weak preparation.";
+			}
+
+			return "Not prepared.";
+		}
+
+		private string GetPreparednessResultBody(int score) {
+			if (score >= 85) {
+				return "You built a flexible plan by protecting several resources instead of relying on one solution.";
+			}
+
+			if (score >= 65) {
+				return "You made mostly solid choices, but a few risks were left open when pressure increased.";
+			}
+
+			if (score >= 45) {
+				return "Your preparation helped in some moments, but it was not balanced enough to stay reliable.";
+			}
+
+			if (score >= 25) {
+				return "You reacted to some warning signs, but your plan lacked enough backup options.";
+			}
+
+			return "You entered the crisis with too many weak points and not enough useful preparation.";
+		}
+
+		private string BuildPreparednessImprovementText(PreparednessReport report) {
+			int scoreGap = Mathf.Max(0, report.ScoreGap);
+
+			if (scoreGap <= 0) {
+				return "Next time, use the same approach: keep resources balanced and choose items that cover different kinds of risk.";
+			}
+
+			return GetGapAdviceText(scoreGap);
+		}
+
+		private string GetGapAdviceText(int scoreGap) {
+			if (scoreGap <= 8) {
+				return "Next time, focus on small optimizations: avoid unnecessary losses and keep your strongest resources protected.";
+			}
+
+			if (scoreGap <= 18) {
+				return "Next time, choose fewer risky shortcuts and prioritize decisions that protect more than one resource.";
+			}
+
+			if (scoreGap <= 32) {
+				return "Next time, watch for repeated resource losses and use items or choices that cover your weakest areas.";
+			}
+
+			if (scoreGap <= 50) {
+				return "Next time, build a broader safety net early instead of waiting until the final days to recover.";
+			}
+
+			return "Next time, treat every early choice as preparation: protect core resources before the disaster becomes clear.";
+		}
+	}
 }
