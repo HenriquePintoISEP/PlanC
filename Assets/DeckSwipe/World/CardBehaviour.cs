@@ -55,6 +55,7 @@ namespace DeckSwipe.World {
 		private bool keyboardSelectionPending;
 
 		public ICard Card {
+			get { return card; }
 			set {
 				card = value;
 				leftActionText.text = card.LeftSwipeText;

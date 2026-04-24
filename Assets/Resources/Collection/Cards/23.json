@@ -1,7 +1,7 @@
 {
     "id": 23,
     "characterId": 116,
-    "cardText": "A stack of sandbags is being loaded into a truck — they can keep floodwater from breaching your home.",
+    "cardText": "A stack of sandbags is being loaded into a truck, but the driver is willing to sell some.",
     "leftAction": {
         "text": "Leave them here",
         "statsModification": {
@@ -14,12 +14,12 @@
         "specialFollowup": []
     },
     "rightAction": {
-        "text": "Take the sandbags",
+        "text": "Buy the sandbags",
         "statsModification": {
             "health": 0,
-            "supplies": 2,
+            "supplies": -2,
             "safety": 1,
-            "community": 0
+            "community": 1
         },
         "followup": [],
         "specialFollowup": []

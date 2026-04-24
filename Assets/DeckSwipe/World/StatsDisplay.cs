@@ -25,6 +25,7 @@ namespace DeckSwipe.World {
 		private float minFillAmount;
 		private float maxFillAmount;
 		private static bool showResourceIndicators = true;
+		private static bool showResourceProgress = true;
 		private static readonly List<StatsDisplay> _listeners = new List<StatsDisplay>();
 		
 		private void Awake() {
@@ -62,6 +63,18 @@ namespace DeckSwipe.World {
 				}
 				else {
 					_listeners[i].SetResourceIndicatorVisibility(show);
+				}
+			}
+		}
+
+		public static void ShowResourceProgress(bool show) {
+			showResourceProgress = show;
+			for (int i = 0; i < _listeners.Count; i++) {
+				if (_listeners[i] == null) {
+					_listeners.RemoveAt(i);
+				}
+				else {
+					_listeners[i].SetResourceProgressVisibility(show);
 				}
 			}
 		}
@@ -104,6 +117,21 @@ namespace DeckSwipe.World {
 			}
 			if (show) {
 				SetIndicators(null, 0f);
+			}
+		}
+
+		private void SetResourceProgressVisibility(bool show) {
+			if (healthBar != null) {
+				healthBar.gameObject.SetActive(show);
+			}
+			if (suppliesBar != null) {
+				suppliesBar.gameObject.SetActive(show);
+			}
+			if (safetyBar != null) {
+				safetyBar.gameObject.SetActive(show);
+			}
+			if (communityBar != null) {
+				communityBar.gameObject.SetActive(show);
 			}
 		}
 

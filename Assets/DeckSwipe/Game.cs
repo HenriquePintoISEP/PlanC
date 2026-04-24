@@ -3,6 +3,7 @@ using System.Linq;
 using DeckSwipe;
 using DeckSwipe.CardModel;
 using DeckSwipe.CardModel.DrawQueue;
+using DeckSwipe.CardModel.Prerequisite;
 using DeckSwipe.Gamestate;
 using DeckSwipe.Gamestate.Persistence;
 using DeckSwipe.World;
@@ -82,9 +83,14 @@ namespace DeckSwipe {
 		private float daysPassedPreviously;
 		private float daysLastRun;
 		private int saveIntervalCounter;
+		private int baseMaxEnergy;
 		private CardDrawQueue cardDrawQueue = new CardDrawQueue();
 		private PreparednessRunTracker preparednessTracker = new PreparednessRunTracker();
 
+		private bool inventoryModeActive;
+		private int inventoryItemIndex;
+		private CardBehaviour currentCardInstance;
+		private ICard pausedCard;
 		private Card lastRandomCard;
 
 		public IReadOnlyList<DeckSwipe.CardModel.Item> HeldItems {
@@ -110,6 +116,13 @@ namespace DeckSwipe {
 			}
 
 			heldItems.Add(item);
+
+			if (item.Type == ItemType.Medkit) {
+				maxEnergy++;
+				ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
+				Debug.Log("[Game] Medkit collected: current day energy extended to " + currentEnergy + "/" + maxEnergy);
+			}
+
 			Debug.Log("[Game] Added item: " + item.Type);
 		}
 
@@ -177,6 +190,8 @@ namespace DeckSwipe {
 				maxDays = dayInfos.Length;
 			}
 
+			baseMaxEnergy = maxEnergy;
+
 			int earliestOutageDay = Mathf.Clamp(Mathf.FloorToInt(maxDays / 3.0f) + 1, 1, maxDays);
 			powerOutageDay = UnityEngine.Random.Range(earliestOutageDay, maxDays + 1);
 
@@ -216,6 +231,15 @@ namespace DeckSwipe {
 		}
 
 		public void DrawNextCard() {
+			if (inventoryModeActive) {
+				DrawNextInventoryCard();
+				return;
+			}
+
+			// Keep the energy bar hidden for the remaining outage day if there is no flashlight or generator.
+			bool hideEnergyIndicatorDuringOutageDay = powerOutageActiveForDay && !HasItem(ItemType.Flashlight) && !HasItem(ItemType.Generator);
+			ProgressDisplay.ShowTimeProgress(!hideEnergyIndicatorDuringOutageDay);
+
 			if (currentDay > maxDays) {
 				TriggerDisasterEnd();
 				return;
@@ -366,6 +390,7 @@ namespace DeckSwipe {
 			Character broadcaster = GetBroadcastCharacter(device);
 
 			ProgressDisplay.ShowTimeProgress(false);
+			ProgressDisplay.SetTimeProgressBackgroundVisible(false);
 
 			SpecialCard clueCard = new SpecialCard(
 				clueText,
@@ -398,10 +423,12 @@ namespace DeckSwipe {
 
 			if (!HasItem(ItemType.Flashlight) && !HasItem(ItemType.Generator)) {
 				StatsDisplay.ShowResourceIndicators(false);
+				StatsDisplay.ShowResourceProgress(false);
 				PowerOutageDisplay.SetDimmed(true);
 			}
 
 			ProgressDisplay.ShowTimeProgress(false);
+			ProgressDisplay.SetTimeProgressBackgroundVisible(false);
 
 			SpecialCard outageDisplayCard = new SpecialCard(
 				outageCard.CardText,
@@ -453,6 +480,10 @@ namespace DeckSwipe {
 
 			if (ratio <= 0.65f) {
 				return ClueSpecificity.Specific;
+			}
+
+			if (ratio <= 0.80f) {
+				return ClueSpecificity.MostSpecific;
 			}
 
 			return ClueSpecificity.MostSpecific;
@@ -517,9 +548,11 @@ namespace DeckSwipe {
 			if (currentEnergy > maxEnergy) {
 				currentEnergy = 1;
 				currentDay++;
+				maxEnergy = baseMaxEnergy;
 				powerOutageActiveForDay = false;
 				clueDeliveredForCurrentDay = false;
 				StatsDisplay.ShowResourceIndicators(true);
+				StatsDisplay.ShowResourceProgress(true);
 				PowerOutageDisplay.SetDimmed(false);
 				ProgressDisplay.SetCurrentDayName(GetDayName(currentDay));
 			}
@@ -556,16 +589,14 @@ namespace DeckSwipe {
 		}
 
 		private void SpawnCard(ICard card) {
-			if (card == null) {
-				Debug.LogWarning("[Game] Tried to spawn a null card.");
-				return;
-			}
+			DestroyCurrentCard();
 
 			CardBehaviour cardInstance = Instantiate(
 				cardPrefab,
 				spawnPosition,
 				Quaternion.Euler(0.0f, -180.0f, 0.0f));
 
+			currentCardInstance = cardInstance;
 			cardInstance.Card = card;
 			cardInstance.snapPosition.y = spawnPosition.y;
 			cardInstance.Controller = this;
@@ -575,6 +606,124 @@ namespace DeckSwipe {
 			Debug.Log("[Game] Disaster card resolved and run completed.");
 			cardDrawQueue.Clear();
 			LogPreparednessReport();
+		}
+
+		public bool InventoryModeActive {
+			get { return inventoryModeActive; }
+		}
+
+		public bool CanOpenInventory {
+			get { return !disasterCardDisplayed; }
+		}
+
+		public void OpenInventoryMode() {
+			if (disasterCardDisplayed || inventoryModeActive || HeldItems == null || HeldItems.Count == 0) {
+				return;
+			}
+
+			CardDescriptionDisplay.ResetDescription();
+			inventoryModeActive = true;
+			inventoryItemIndex = 0;
+
+			if (currentCardInstance != null) {
+				pausedCard = currentCardInstance.Card;
+				DestroyCurrentCard();
+			}
+
+			ProgressDisplay.SetInventoryMode(inventoryItemIndex + 1, HeldItems.Count);
+			DrawNextCard();
+		}
+
+		public void CloseInventoryMode() {
+			if (!inventoryModeActive) {
+				return;
+			}
+
+			CardDescriptionDisplay.ResetDescription();
+			inventoryModeActive = false;
+			DestroyCurrentCard();
+
+			if (pausedCard != null) {
+				SpawnCard(pausedCard);
+				pausedCard = null;
+			}
+			else {
+				DrawNextCard();
+			}
+
+			ProgressDisplay.ResetInventoryMode();
+			ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
+		}
+
+		public void MoveInventoryItem(int direction) {
+			if (!inventoryModeActive || HeldItems == null || HeldItems.Count == 0) {
+				return;
+			}
+
+			inventoryItemIndex = (inventoryItemIndex + direction) % HeldItems.Count;
+			if (inventoryItemIndex < 0) {
+				inventoryItemIndex += HeldItems.Count;
+			}
+
+			ProgressDisplay.SetInventoryMode(inventoryItemIndex + 1, HeldItems.Count);
+			DestroyCurrentCard();
+			DrawNextCard();
+		}
+
+		private void DrawNextInventoryCard() {
+			if (HeldItems == null || HeldItems.Count == 0) {
+				inventoryModeActive = false;
+				DrawNextCard();
+				return;
+			}
+
+			if (inventoryItemIndex < 0) {
+				inventoryItemIndex = 0;
+			}
+			else if (inventoryItemIndex >= HeldItems.Count) {
+				inventoryItemIndex = HeldItems.Count - 1;
+			}
+
+			Item item = HeldItems[inventoryItemIndex];
+			if (item == null) {
+				return;
+			}
+
+			SpawnCard(CreateInventoryCard(item));
+		}
+
+		private ICard CreateInventoryCard(Item item) {
+			Card itemCard = FindItemCard(item.Type);
+			Character itemCharacter = itemCard?.character ?? new Character(item.Title, defaultCharacterSprite);
+			string inventoryText = item.EffectDescription;
+
+			Card inventoryCard = new Card(
+				inventoryText,
+				"Previous",
+				"Next",
+				itemCharacter,
+				new InventoryNavigationOutcome(-1),
+				new InventoryNavigationOutcome(1),
+				new List<ICardPrerequisite>(),
+				null,
+				item.Type);
+			inventoryCard.progress = new CardProgress(-1, CardStatus.None);
+			return inventoryCard;
+		}
+
+		private Card FindItemCard(ItemType itemType) {
+			if (cardStorage?.Cards == null) {
+				return null;
+			}
+
+			return cardStorage.Cards.Values.FirstOrDefault(candidate => candidate.ItemType == itemType);
+		}
+
+		private void DestroyCurrentCard() {
+			if (currentCardInstance != null) {
+				Destroy(currentCardInstance.gameObject);
+				currentCardInstance = null;
+			}
 		}
 
 		private PreparednessReport BuildCurrentPreparednessReport() {
@@ -642,6 +791,7 @@ namespace DeckSwipe {
 				disasterCardDisplayed = true;
 				ProgressDisplay.SetDayLabelText(disasterTitle);
 				ProgressDisplay.ShowTimeProgress(false);
+				ProgressDisplay.SetTimeProgressBackgroundVisible(false);
 				SpawnCard(disasterCard);
 				return;
 			}

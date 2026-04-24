@@ -22,7 +22,6 @@ namespace DeckSwipe.World {
 		
 		public float fillAnimationSpeed = 5.0f; // Speed multiplier for the bar animation
 		private float targetFillAmount = 0.0f;
-		private bool showTimeProgress = true;
 		
 		private void Awake() {
 			if (!Util.IsPrefab(gameObject)) {
@@ -50,12 +49,13 @@ namespace DeckSwipe.World {
 		}
 
 		public static void ShowTimeProgress(bool show) {
+			showTimeProgress = show;
 			for (int i = 0; i < _changeListeners.Count; i++) {
 				if (_changeListeners[i] == null) {
 					_changeListeners.RemoveAt(i);
 				}
 				else {
-					_changeListeners[i].SetTimeProgressVisibility(show);
+					_changeListeners[i].ApplyTimeProgressState();
 				}
 			}
 		}
@@ -75,6 +75,37 @@ namespace DeckSwipe.World {
 
 		private static int currentDayNumber = 1;
 		private static string currentDayName = string.Empty;
+		private static bool inventoryMode = false;
+		private static int inventoryItemIndex = 0;
+		private static int inventoryItemCount = 0;
+		private static bool showTimeProgress = true;
+		private static bool showTimeProgressBackground = true;
+
+		public static void SetInventoryMode(int currentItemIndex, int totalItems) {
+			inventoryMode = true;
+			inventoryItemIndex = Mathf.Clamp(currentItemIndex, 1, Mathf.Max(totalItems, 1));
+			inventoryItemCount = Mathf.Max(totalItems, 0);
+			for (int i = 0; i < _changeListeners.Count; i++) {
+				if (_changeListeners[i] == null) {
+					_changeListeners.RemoveAt(i);
+				}
+				else {
+					_changeListeners[i].UpdateInventoryDisplay();
+				}
+			}
+		}
+
+		public static void ResetInventoryMode() {
+			inventoryMode = false;
+			for (int i = 0; i < _changeListeners.Count; i++) {
+				if (_changeListeners[i] == null) {
+					_changeListeners.RemoveAt(i);
+				}
+				else {
+					_changeListeners[i].RestoreNormalDisplay();
+				}
+			}
+		}
 
 		public static void SetCurrentDayName(string dayName) {
 			currentDayName = dayName ?? string.Empty;
@@ -116,8 +147,29 @@ namespace DeckSwipe.World {
 				daysSurvivedText.text = labelText;
 			}
 		}
-		
+
+		private void UpdateInventoryDisplay() {
+			ApplyTimeProgressState();
+			if (daysSurvivedText != null) {
+				daysSurvivedText.text = "Inventory";
+			}
+			if (dayTitleText != null) {
+				dayTitleText.text = $"Item {inventoryItemIndex} out of {inventoryItemCount}";
+			}
+		}
+
+		private void RestoreNormalDisplay() {
+			inventoryMode = false;
+			ApplyTimeProgressState();
+			UpdateDayOnly(currentDayNumber);
+			UpdateDayName();
+		}
+
 		private void SetDisplay(int days, int currentEnergy, int maxEnergy) {
+			if (inventoryMode) {
+				UpdateInventoryDisplay();
+				return;
+			}
 			UpdateDayOnly(days);
 			if (showTimeProgress) {
 				if (energyText != null) {
@@ -143,19 +195,50 @@ namespace DeckSwipe.World {
 					energyProgressBar.gameObject.SetActive(false);
 				}
 				if (energyProgressBarBackground != null && energyProgressBarBackground.gameObject != null) {
-					energyProgressBarBackground.gameObject.SetActive(false);
+					energyProgressBarBackground.gameObject.SetActive(EffectiveShowTimeProgressBackground());
 				}
 			}
 		}
 
-		private void SetTimeProgressVisibility(bool show) {
-			showTimeProgress = show;
+		public static void SetTimeProgressBackgroundVisible(bool show) {
+			showTimeProgressBackground = show;
+			for (int i = 0; i < _changeListeners.Count; i++) {
+				if (_changeListeners[i] == null) {
+					_changeListeners.RemoveAt(i);
+				}
+				else {
+					_changeListeners[i].ApplyTimeProgressState();
+				}
+			}
+		}
+
+		private bool EffectiveShowTimeProgress() {
+			return !inventoryMode && showTimeProgress;
+		}
+
+		private bool EffectiveShowTimeProgressBackground() {
+			return !inventoryMode && showTimeProgressBackground;
+		}
+
+		private void ApplyTimeProgressState() {
+			bool show = EffectiveShowTimeProgress();
 			if (energyText != null && energyText.gameObject != null) {
 				energyText.gameObject.SetActive(show);
 			}
 			if (energyProgressBar != null && energyProgressBar.gameObject != null) {
 				energyProgressBar.gameObject.SetActive(show);
 			}
+			if (energyProgressBarBackground != null && energyProgressBarBackground.gameObject != null) {
+				energyProgressBarBackground.gameObject.SetActive(show || EffectiveShowTimeProgressBackground());
+			}
+		}
+
+		private void SetTimeProgressVisibility(bool show) {
+			showTimeProgress = show;
+			ApplyTimeProgressState();
+		}
+
+		private void SetTimeProgressBackgroundVisibility(bool show) {
 			if (energyProgressBarBackground != null && energyProgressBarBackground.gameObject != null) {
 				energyProgressBarBackground.gameObject.SetActive(show);
 			}
