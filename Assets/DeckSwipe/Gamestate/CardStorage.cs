@@ -110,6 +110,7 @@ namespace DeckSwipe.Gamestate {
 		}
 
 		public void ResolvePrerequisites() {
+			drawableCards.Clear();
 			foreach (Card card in Cards.Values) {
 				card.ResolvePrerequisites(this);
 				if (card.PrerequisitesSatisfied()) {

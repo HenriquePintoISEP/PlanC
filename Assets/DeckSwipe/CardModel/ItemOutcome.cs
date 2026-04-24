@@ -5,6 +5,7 @@ namespace DeckSwipe.CardModel {
     public class ItemOutcome : IActionOutcome {
 
         public StatsModification StatsModification => statsModification ?? new StatsModification(0, 0, 0, 0);
+        public Item Item => item;
 
         private readonly Item item;
         private readonly StatsModification statsModification;

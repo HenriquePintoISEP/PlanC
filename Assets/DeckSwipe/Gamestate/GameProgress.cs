@@ -53,6 +53,19 @@ namespace DeckSwipe.Gamestate {
 			}
 		}
 
+		public void ResetCardProgress() {
+			if (cardProgress != null) {
+				foreach (CardProgress progress in cardProgress) {
+					progress.Status = CardStatus.None;
+				}
+			}
+			if (specialCardProgress != null) {
+				foreach (SpecialCardProgress progress in specialCardProgress) {
+					progress.Status = CardStatus.None;
+				}
+			}
+		}
+
 	}
 
 }

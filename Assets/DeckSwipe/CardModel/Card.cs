@@ -111,6 +111,7 @@ namespace DeckSwipe.CardModel {
 
 		public void ResolvePrerequisites(CardStorage cardStorage) {
 			unsatisfiedPrerequisites = new Dictionary<ICard, ICardPrerequisite>();
+			dependentCards.Clear();
 			foreach (ICardPrerequisite prerequisite in prerequisites) {
 				ICard card = prerequisite.GetCard(cardStorage);
 				if (card != null

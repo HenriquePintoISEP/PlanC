@@ -2,7 +2,7 @@ using DeckSwipe.World;
 
 namespace DeckSwipe.CardModel {
 
-	public class ClueOutcome : IActionOutcome {
+	public class NoActionOutcome : IActionOutcome {
 
 		public StatsModification StatsModification => null;
 

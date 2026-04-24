@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DeckSwipe.CardModel;
 
 namespace DeckSwipe.Gamestate {
@@ -45,12 +46,26 @@ namespace DeckSwipe.Gamestate {
 		public StatsModification LeftDelta;
 		public StatsModification RightDelta;
 		public bool ChoseLeft;
+		public ItemType? LeftItemType;
+		public ItemType? RightItemType;
 
-		public PreparednessDecision(string cardText, StatsModification leftDelta, StatsModification rightDelta, bool choseLeft) {
+		public IReadOnlyList<ItemType> OfferedItemTypes {
+			get {
+				return new[] { LeftItemType, RightItemType }
+					.Where(item => item.HasValue)
+					.Select(item => item.Value)
+					.Distinct()
+					.ToList();
+			}
+		}
+
+		public PreparednessDecision(string cardText, StatsModification leftDelta, StatsModification rightDelta, bool choseLeft, ItemType? leftItemType, ItemType? rightItemType) {
 			CardText = cardText;
 			LeftDelta = leftDelta;
 			RightDelta = rightDelta;
 			ChoseLeft = choseLeft;
+			LeftItemType = leftItemType;
+			RightItemType = rightItemType;
 		}
 
 	}
@@ -60,26 +75,44 @@ namespace DeckSwipe.Gamestate {
 	public sealed class PreparednessReport {
 
 		public int DecisionCount { get; }
+		public int DecisionScore { get; }
+		public int ItemScore { get; }
+		public int BestPossibleItemScore { get; }
 		public int ActualScore { get; }
 		public int BestPossibleScore { get; }
 		public int ScoreGap => BestPossibleScore - ActualScore;
 
 		public PreparednessState ActualFinalState { get; }
 		public PreparednessState BestPossibleFinalState { get; }
+		public IReadOnlyList<ItemType> OfferedItems { get; }
+		public IReadOnlyList<ItemType> ActualItems { get; }
+		public IReadOnlyList<bool> ActualDecisionPath { get; }
 		public IReadOnlyList<bool> BestDecisionPath { get; }
 
 		public PreparednessReport(
 				int decisionCount,
+				int decisionScore,
+				int itemScore,
+				int bestPossibleItemScore,
 				int actualScore,
 				int bestPossibleScore,
 				PreparednessState actualFinalState,
 				PreparednessState bestPossibleFinalState,
+				IReadOnlyList<ItemType> offeredItems,
+				IReadOnlyList<ItemType> actualItems,
+				IReadOnlyList<bool> actualDecisionPath,
 				IReadOnlyList<bool> bestDecisionPath) {
 			DecisionCount = decisionCount;
+			DecisionScore = decisionScore;
+			ItemScore = itemScore;
+			BestPossibleItemScore = bestPossibleItemScore;
 			ActualScore = actualScore;
 			BestPossibleScore = bestPossibleScore;
 			ActualFinalState = actualFinalState;
 			BestPossibleFinalState = bestPossibleFinalState;
+			OfferedItems = offeredItems;
+			ActualItems = actualItems;
+			ActualDecisionPath = actualDecisionPath;
 			BestDecisionPath = bestDecisionPath;
 		}
 
@@ -102,17 +135,58 @@ namespace DeckSwipe.Gamestate {
 				card?.CardText ?? string.Empty,
 				card?.LeftSwipeOutcome?.StatsModification,
 				card?.RightSwipeOutcome?.StatsModification,
-				choseLeft));
+				choseLeft,
+				GetItemTypeFromOutcome(card?.LeftSwipeOutcome),
+				GetItemTypeFromOutcome(card?.RightSwipeOutcome)));
+		}
+
+		private static ItemType? GetItemTypeFromOutcome(IActionOutcome outcome) {
+			if (outcome is ItemOutcome itemOutcome && itemOutcome.Item != null) {
+				return itemOutcome.Item.Type;
+			}
+
+			return null;
 		}
 
 		// Computes best possible state and score, then builds a comparison report.
-		public PreparednessReport BuildReport(PreparednessState initialState, PreparednessState actualFinalState, int minValue, int maxValue) {
+		public PreparednessReport BuildReport(
+			PreparednessState initialState,
+			PreparednessState actualFinalState,
+			int minValue,
+			int maxValue,
+			IReadOnlyCollection<ItemType> actualItemTypes,
+			DisasterType disasterType) {
 			PreparednessState bestPossibleState = PreparednessScoring.FindBestPossibleFinalState(decisions, initialState, minValue, maxValue);
 			IReadOnlyList<bool> bestDecisionPath = PreparednessScoring.FindBestDecisionPath(decisions, initialState, minValue, maxValue);
-			int actualScore = PreparednessScoring.CalculateScore(actualFinalState, maxValue);
-			int bestScore = PreparednessScoring.CalculateScore(bestPossibleState, maxValue);
+			int decisionScore = PreparednessScoring.CalculateScore(actualFinalState, maxValue);
+			int bestDecisionScore = PreparednessScoring.CalculateScore(bestPossibleState, maxValue);
+			IReadOnlyList<bool> actualDecisionPath = decisions.ConvertAll(d => d.ChoseLeft);
+			List<ItemType> offeredItems = decisions.SelectMany(d => d.OfferedItemTypes)
+				.Distinct()
+				.ToList();
+			List<ItemType> offeredItemsForScoring = offeredItems
+				.Where(item => !PreparednessScoring.IsIgnoredItem(item))
+				.ToList();
+			float itemScoreNormalized = PreparednessScoring.CalculateItemScoreNormalized(offeredItemsForScoring, actualItemTypes, disasterType);
+			float bestItemScoreNormalized = PreparednessScoring.CalculateBestItemScoreNormalized(offeredItemsForScoring, disasterType);
+			int itemScore = (int)Math.Round(itemScoreNormalized * 100.0f);
+			int bestItemScore = (int)Math.Round(bestItemScoreNormalized * 100.0f);
+			int actualScore = PreparednessScoring.CalculateCombinedScore(decisionScore, itemScoreNormalized);
+			int bestScore = PreparednessScoring.CalculateCombinedScore(bestDecisionScore, bestItemScoreNormalized);
 
-			return new PreparednessReport(decisions.Count, actualScore, bestScore, actualFinalState, bestPossibleState, bestDecisionPath);
+			return new PreparednessReport(
+				decisions.Count,
+				decisionScore,
+				itemScore,
+				bestItemScore,
+				actualScore,
+				bestScore,
+				actualFinalState,
+				bestPossibleState,
+				offeredItems,
+				actualItemTypes.ToList(),
+				actualDecisionPath,
+				bestDecisionPath);
 		}
 
 	}
@@ -120,6 +194,10 @@ namespace DeckSwipe.Gamestate {
 	// Core scoring system using dynamic programming to find the best possible final state
 	// from the same sequence of choices presented to the player.
 	public static class PreparednessScoring {
+
+		private static readonly HashSet<ItemType> IgnoredPreparednessItems = new HashSet<ItemType> {
+			ItemType.Television
+		};
 
 		// Memoization key: (which decision index, current state).
 		// Allows caching to avoid recalculating the same decision point.
@@ -241,6 +319,71 @@ namespace DeckSwipe.Gamestate {
 			int minA = Math.Min(Math.Min(a.Health, a.Supplies), Math.Min(a.Safety, a.Community));
 			int minB = Math.Min(Math.Min(b.Health, b.Supplies), Math.Min(b.Safety, b.Community));
 			return minA - minB;
+		}
+
+		public static int CalculateCombinedScore(int decisionScore, float itemScoreNormalized) {
+			return (int)Math.Round(decisionScore * 0.85f + itemScoreNormalized * 15.0f);
+		}
+
+		public static float CalculateItemScoreNormalized(
+			IReadOnlyCollection<ItemType> offeredItems,
+			IReadOnlyCollection<ItemType> actualItems,
+			DisasterType disasterType) {
+			HashSet<ItemType> actualSet = new HashSet<ItemType>(
+				(actualItems ?? new List<ItemType>())
+					.Where(item => !IsIgnoredItem(item)));
+			List<ItemType> filteredOfferedItems = offeredItems
+				.Where(item => !IsIgnoredItem(item))
+				.ToList();
+			List<ItemType> offeredRelevant = filteredOfferedItems
+				.Where(item => IsRelevantItem(item, disasterType))
+				.ToList();
+			List<ItemType> offeredIrrelevant = filteredOfferedItems
+				.Where(item => !IsRelevantItem(item, disasterType))
+				.ToList();
+
+			int acquiredRelevant = offeredRelevant.Count(item => actualSet.Contains(item));
+			int acquiredIrrelevant = offeredIrrelevant.Count(item => actualSet.Contains(item));
+
+			float relevantRatio = offeredRelevant.Count == 0 ? 1.0f : (float)acquiredRelevant / offeredRelevant.Count;
+			float irrelevantPenalty = offeredIrrelevant.Count == 0 ? 0.0f : (float)acquiredIrrelevant / offeredIrrelevant.Count;
+			return Math.Clamp(relevantRatio - irrelevantPenalty, 0.0f, 1.0f);
+		}
+
+		public static float CalculateBestItemScoreNormalized(
+			IReadOnlyCollection<ItemType> offeredItems,
+			DisasterType disasterType) {
+			List<ItemType> filteredOfferedItems = offeredItems
+				.Where(item => !IsIgnoredItem(item))
+				.ToList();
+			List<ItemType> offeredRelevant = filteredOfferedItems
+				.Where(item => IsRelevantItem(item, disasterType))
+				.ToList();
+			return offeredRelevant.Count == 0 ? 1.0f : 1.0f;
+		}
+
+		public static bool IsRelevantItem(ItemType itemType, DisasterType disasterType) {
+			Item item = ItemLibrary.CreateItem(itemType);
+			if (item.PreparednessFor == null || item.PreparednessFor.Count == 0) {
+				return false;
+			}
+			return item.PreparednessFor.Contains(disasterType);
+		}
+
+		public static bool IsSpecificPreparednessItem(ItemType itemType) {
+			Item item = ItemLibrary.CreateItem(itemType);
+			return item.PreparednessFor != null && item.PreparednessFor.Count > 0;
+		}
+
+		public static bool IsIgnoredItem(ItemType itemType) {
+			if (IgnoredPreparednessItems.Contains(itemType)) {
+				return true;
+			}
+
+			Item item = ItemLibrary.CreateItem(itemType);
+			return item.PreparednessFor == null
+				|| item.PreparednessFor.Count == 0
+				|| item.PreparednessFor.Contains(DisasterType.None);
 		}
 
 	}
