@@ -9,6 +9,7 @@ using DeckSwipe.Gamestate.Persistence;
 using DeckSwipe.World;
 using Outfrost;
 using System.Text;
+using TMPro;
 using UnityEngine;
 
 namespace DeckSwipe {
@@ -26,6 +27,11 @@ namespace DeckSwipe {
 		public Sprite defaultCharacterSprite;
 		public bool loadRemoteCollectionFirst;
 		public PowerOutageDisplay powerOutageDisplay;
+
+		[Header("Inventory UI")]
+		public TextMeshProUGUI inventoryButtonText;
+		public string inventoryButtonOpenText = "Inventory";
+		public string inventoryButtonCloseText = "Close";
 
 		[Header("Time Progression")]
 		public int maxEnergy = 3;
@@ -117,6 +123,10 @@ namespace DeckSwipe {
 
 			heldItems.Add(item);
 
+			if (item.Type != ItemType.Television) {
+				PlanCSoundEffects.PlayItemCollected();
+			}
+
 			if (item.Type == ItemType.Medkit) {
 				maxEnergy++;
 				ProgressDisplay.UpdateTimeProgress(currentDay, currentEnergy, maxEnergy);
@@ -156,6 +166,7 @@ namespace DeckSwipe {
 		}
 
 		private void Start() {
+			UpdateInventoryButtonText();
 			CallbackWhenDoneLoading(StartGame);
 		}
 
@@ -182,6 +193,11 @@ namespace DeckSwipe {
 			cardStorage.ResolvePrerequisites();
 
 			lastRandomCard = null;
+			inventoryModeActive = false;
+			inventoryItemIndex = 0;
+			pausedCard = null;
+			DestroyCurrentCard();
+			UpdateInventoryButtonText();
 
 			currentDay = 1;
 			currentEnergy = 1;
@@ -211,6 +227,25 @@ namespace DeckSwipe {
 			DrawNextCard();
 		}
 
+		private void UpdateInventoryButtonText() {
+			if (inventoryButtonText == null) {
+				return;
+			}
+
+			inventoryButtonText.text = inventoryModeActive
+				? inventoryButtonCloseText
+				: inventoryButtonOpenText;
+		}
+
+		public void ToggleInventoryMode() {
+			if (inventoryModeActive) {
+				CloseInventoryMode();
+			}
+			else {
+				OpenInventoryMode();
+			}
+		}
+
 		private string GetDayName(int day) {
 			if (dayInfos == null || dayInfos.Length == 0 || day < 1 || day > dayInfos.Length) {
 				return string.Empty;
@@ -236,7 +271,6 @@ namespace DeckSwipe {
 				return;
 			}
 
-			// Keep the energy bar hidden for the remaining outage day if there is no flashlight or generator.
 			bool hideEnergyIndicatorDuringOutageDay = powerOutageActiveForDay && !HasItem(ItemType.Flashlight) && !HasItem(ItemType.Generator);
 			ProgressDisplay.ShowTimeProgress(!hideEnergyIndicatorDuringOutageDay);
 
@@ -421,6 +455,8 @@ namespace DeckSwipe {
 			powerOutageTriggered = true;
 			powerOutageActiveForDay = true;
 
+			PlanCSoundEffects.PlayWarning();
+
 			if (!HasItem(ItemType.Flashlight) && !HasItem(ItemType.Generator)) {
 				StatsDisplay.ShowResourceIndicators(false);
 				StatsDisplay.ShowResourceProgress(false);
@@ -569,6 +605,8 @@ namespace DeckSwipe {
 		}
 
 		public void PerformDecision(ICard card, bool chooseLeft) {
+			PlanCSoundEffects.PlaySwipe(chooseLeft);
+
 			preparednessTracker.RecordDecision(card, chooseLeft);
 
 			if (chooseLeft) {
@@ -591,6 +629,11 @@ namespace DeckSwipe {
 		private void SpawnCard(ICard card) {
 			DestroyCurrentCard();
 
+			if (card == null) {
+				Debug.LogWarning("[Game] Tried to spawn a null card.");
+				return;
+			}
+
 			CardBehaviour cardInstance = Instantiate(
 				cardPrefab,
 				spawnPosition,
@@ -600,6 +643,8 @@ namespace DeckSwipe {
 			cardInstance.Card = card;
 			cardInstance.snapPosition.y = spawnPosition.y;
 			cardInstance.Controller = this;
+
+			PlanCSoundEffects.PlayCardAppear();
 		}
 
 		private void CompleteDisasterRun() {
@@ -621,9 +666,12 @@ namespace DeckSwipe {
 				return;
 			}
 
+			PlanCSoundEffects.PlayButtonClick();
+
 			CardDescriptionDisplay.ResetDescription();
 			inventoryModeActive = true;
 			inventoryItemIndex = 0;
+			UpdateInventoryButtonText();
 
 			if (currentCardInstance != null) {
 				pausedCard = currentCardInstance.Card;
@@ -639,8 +687,12 @@ namespace DeckSwipe {
 				return;
 			}
 
+			PlanCSoundEffects.PlayButtonClick();
+
 			CardDescriptionDisplay.ResetDescription();
 			inventoryModeActive = false;
+			UpdateInventoryButtonText();
+
 			DestroyCurrentCard();
 
 			if (pausedCard != null) {
@@ -660,6 +712,8 @@ namespace DeckSwipe {
 				return;
 			}
 
+			PlanCSoundEffects.PlaySwipe(direction < 0);
+
 			inventoryItemIndex = (inventoryItemIndex + direction) % HeldItems.Count;
 			if (inventoryItemIndex < 0) {
 				inventoryItemIndex += HeldItems.Count;
@@ -673,6 +727,7 @@ namespace DeckSwipe {
 		private void DrawNextInventoryCard() {
 			if (HeldItems == null || HeldItems.Count == 0) {
 				inventoryModeActive = false;
+				UpdateInventoryButtonText();
 				DrawNextCard();
 				return;
 			}
@@ -707,6 +762,7 @@ namespace DeckSwipe {
 				new List<ICardPrerequisite>(),
 				null,
 				item.Type);
+
 			inventoryCard.progress = new CardProgress(-1, CardStatus.None);
 			return inventoryCard;
 		}
@@ -933,7 +989,7 @@ namespace DeckSwipe {
 
 		private string GetGapAdviceText(int scoreGap) {
 			if (scoreGap <= 8) {
-				return "Next time, focus on small optimizations: avoid unnecessary losses and keep your strongest resources protected.";
+				return "Next time, focus on small optimizations: Avoid unnecessary losses and keep your strongest resources protected.";
 			}
 
 			if (scoreGap <= 18) {
